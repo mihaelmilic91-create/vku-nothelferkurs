@@ -35,7 +35,7 @@ VALUES
 
   ('Fahrschule Z (Stadelhofen)', 'fahrschule-z-stadelhofen', 'Kreuzbühlstrasse 16', '8008', 'Zürich', 'ZH', 'nothelferkurs', 99, ARRAY['Deutsch'], 'https://www.fahrschule-z.ch/nothelferkurs/zuerich-stadelhofen/', NULL, NULL, 'https://www.fahrschule-z.ch/nothelferkurs/zuerich-stadelhofen/', 'aktiv', 47.3630, 8.5560),
 
-  ('MAXX Drive', 'maxx-drive-pfaeffikon-sz', NULL, '8808', 'Pfäffikon SZ', 'SZ', 'vku', NULL, ARRAY['Deutsch'], 'https://www.maxx-drive.ch/verkehrskunde-vku-pfaeffikon-sz/', 'info@maxx-drive.ch', '076 304 22 22', 'https://www.maxx-drive.ch/verkehrskunde-vku-pfaeffikon-sz/', 'aktiv', 47.2010, 8.7690),
+  ('Fahrschule Signorelli', 'fahrschule-signorelli-steinen', 'Nagelstrasse 24', '6422', 'Steinen', 'SZ', 'vku', 250, ARRAY['Deutsch','Italienisch'], 'https://www.fahr-los.ch/', 'info@fahr-los.ch', '076 701 77 11', 'https://www.fahr-los.ch/', 'aktiv', 47.0430, 8.6420),
 
   ('Nothelfer am Bahnhof St. Gallen', 'nothelfer-am-bahnhof-st-gallen', 'St. Leonhard-Strasse 35', '9001', 'St. Gallen', 'SG', 'nothelferkurs', 130, ARRAY['Deutsch'], 'https://www.nothelferambahnhof.ch/nothelferkurs-stgallen', 'info+stgallen@nothelferambahnhof.ch', '078 216 54 89', 'https://www.nothelferambahnhof.ch/nothelferkurs-stgallen', 'aktiv', 47.4230, 9.3730)
 ON CONFLICT (slug) DO NOTHING;
