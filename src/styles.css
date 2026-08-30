@@ -1,0 +1,95 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-coral: var(--coral);
+  --color-teal: var(--teal);
+  --color-sun: var(--sun);
+  --color-lav: var(--lav);
+  --color-bubble: var(--bubble);
+  --color-mint: var(--mint);
+  --color-ink: var(--ink);
+  --color-inksoft: var(--inksoft);
+  --font-display: "Fredoka", sans-serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+:root {
+  --radius: 1.25rem;
+  --background: #fdf3f6;
+  --foreground: #332b38;
+  --card: #ffffff;
+  --card-foreground: #332b38;
+  --popover: #ffffff;
+  --popover-foreground: #332b38;
+  --primary: #ff6b8a;
+  --primary-foreground: #ffffff;
+  --secondary: #cff3ec;
+  --secondary-foreground: #2fc6b0;
+  --muted: #fdf3f6;
+  --muted-foreground: #7b6e83;
+  --accent: #ffd9e2;
+  --accent-foreground: #ff6b8a;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+  --border: color-mix(in oklab, #332b38 10%, transparent);
+  --input: #fdf3f6;
+  --ring: #ff6b8a;
+  --coral: #ff6b8a;
+  --teal: #2fc6b0;
+  --sun: #ffc24b;
+  --lav: #a79be8;
+  --bubble: #ffd9e2;
+  --mint: #cff3ec;
+  --ink: #332b38;
+  --inksoft: #7b6e83;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+}

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.anbieter_protect_status() FROM PUBLIC, anon, authenticated;
