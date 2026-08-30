@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { BeanspruchenLink, UnbeanspruchtBadge, WebsiteLink } from "@/components/unbeansprucht";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { KANTONE } from "@/lib/anbieter";
 import { sucheAnbieterUmkreis } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
+import { TerminFilter, useTerminFilter } from "@/components/termin-filter";
 import swissMap from "@/assets/swiss-map.jpg";
 
 export const Route = createFileRoute("/")({
@@ -69,12 +71,13 @@ function Index() {
   const [radius, setRadius] = useState(20);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoStatus, setGeoStatus] = useState<"idle" | "laden" | "fehler">("idle");
+  const termin = useTerminFilter();
 
   const suche = useServerFn(sucheAnbieterUmkreis);
   const debouncedQuery = useDebounced(query.trim(), 350);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["umkreis", debouncedQuery, geo, radius, kursart],
+    queryKey: ["umkreis", debouncedQuery, geo, radius, kursart, termin.fenster],
     queryFn: () =>
       suche({
         data: {
@@ -83,10 +86,13 @@ function Index() {
           lng: geo?.lng,
           radiusKm: radius,
           kurstyp: kursart === "alle" ? undefined : kursart,
+          terminVon: termin.fenster.von,
+          terminBis: termin.fenster.bis,
         },
       }),
     placeholderData: (prev: unknown) => prev as never,
   });
+
 
   const results = data?.treffer ?? [];
   const punkt = data?.punkt ?? null;
@@ -119,7 +125,6 @@ function Index() {
     : query.trim().length > 0
       ? `«${query.trim()}»`
       : "der ganzen Schweiz";
-
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -212,7 +217,11 @@ function Index() {
                       : "bg-background text-teal shadow-[inset_0_0_0_2px_hsl(var(--mint,180_50%_90%))] hover:bg-mint"
                   }`}
                 >
-                  {geoStatus === "laden" ? "Ortung …" : geo ? "📍 Standort aktiv" : "🧭 Standort verwenden"}
+                  {geoStatus === "laden"
+                    ? "Ortung …"
+                    : geo
+                      ? "📍 Standort aktiv"
+                      : "🧭 Standort verwenden"}
                 </button>
                 <button
                   onClick={() =>
@@ -231,7 +240,11 @@ function Index() {
               {geo ? (
                 <p className="mt-2 px-1 text-xs font-medium text-teal">
                   Dein Standort wird verwendet.{" "}
-                  <button type="button" onClick={() => setGeo(null)} className="underline hover:text-foreground">
+                  <button
+                    type="button"
+                    onClick={() => setGeo(null)}
+                    className="underline hover:text-foreground"
+                  >
                     Zurücksetzen
                   </button>
                 </p>
@@ -273,6 +286,9 @@ function Index() {
                   ))}
                 </div>
               </div>
+
+              <TerminFilter {...termin} />
+
             </div>
           </div>
 
@@ -325,12 +341,13 @@ function Index() {
                 {f.label}
               </button>
             ))}
-            {(query || kursart !== "alle" || geo) && (
+            {(query || kursart !== "alle" || geo || termin.option !== "jederzeit") && (
               <button
                 onClick={() => {
                   setQuery("");
                   setKursart("alle");
                   setGeo(null);
+                  termin.setOption("jederzeit");
                 }}
                 className="rounded-full px-4 py-2 text-sm font-semibold text-coral transition-colors hover:text-foreground"
               >
@@ -341,8 +358,8 @@ function Index() {
 
           {ausserhalbRadius && results.length > 0 ? (
             <div className="mb-5 rounded-2xl bg-sun/25 px-5 py-4 text-sm font-medium text-foreground">
-              Im Umkreis von {radius} km gibt es noch keine Anbieter — hier sind die
-              nächstgelegenen Treffer ausserhalb des Radius.
+              Im Umkreis von {radius} km gibt es noch keine Anbieter — hier sind die nächstgelegenen
+              Treffer ausserhalb des Radius.
             </div>
           ) : null}
 
@@ -400,20 +417,61 @@ function Index() {
                   <p className="mt-1 text-sm text-muted-foreground">
                     {a.plz} {a.ort} · {a.kanton}
                   </p>
+                  {a.beansprucht ? (
+                    <p className="mt-2 text-xs font-medium text-muted-foreground">
+                      Sprachen:{" "}
+                      <span className="font-bold text-foreground">{a.sprache.join(", ")}</span>
+                    </p>
+                  ) : null}
                   <p className="mt-2 text-xs font-medium text-muted-foreground">
-                    Sprachen: <span className="font-bold text-foreground">{a.sprache.join(", ")}</span>
+                    {a.naechster_termin ? (
+                      <>
+                        Nächster Kursbeginn:{" "}
+                        <span className="font-bold text-foreground">
+                          {new Date(a.naechster_termin).toLocaleDateString("de-CH", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </>
+                    ) : a.termine_url || a.website_url ? (
+                      <a
+                        href={(a.termine_url ?? a.website_url)!}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="font-semibold text-teal underline"
+                      >
+                        Termine auf der Anbieter-Website
+                      </a>
+                    ) : (
+                      "Termine auf Anfrage"
+                    )}
                   </p>
-                  <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+
+                  {a.beansprucht ? null : (
+                    <div className="mt-3">
+                      <UnbeanspruchtBadge klein />
+                    </div>
+                  )}
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
                     <span className="font-display text-lg font-bold text-coral">
                       {a.preis_chf != null ? `CHF ${a.preis_chf}` : "Preis auf Anfrage"}
                     </span>
-                    <Link
-                      to="/anbieter/$slug"
-                      params={{ slug: a.slug }}
-                      className="rounded-full bg-foreground px-4 py-2 font-display text-sm font-semibold text-primary-foreground transition-colors hover:bg-coral"
-                    >
-                      Ansehen
-                    </Link>
+                    {a.beansprucht ? (
+                      <Link
+                        to="/anbieter/$slug"
+                        params={{ slug: a.slug }}
+                        className="rounded-full bg-foreground px-4 py-2 font-display text-sm font-semibold text-primary-foreground transition-colors hover:bg-coral"
+                      >
+                        Ansehen
+                      </Link>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        <WebsiteLink url={a.website_url} klein />
+                        <BeanspruchenLink anbieter={a} klein />
+                      </div>
+                    )}
                   </div>
                 </article>
               ))}
@@ -491,7 +549,10 @@ function Index() {
             <a href="#" className="transition-colors hover:text-coral">
               Datenschutz
             </a>
-            <a href="mailto:hallo@vku-nothelferkurs.ch" className="transition-colors hover:text-coral">
+            <a
+              href="mailto:hallo@vku-nothelferkurs.ch"
+              className="transition-colors hover:text-coral"
+            >
               Kontakt
             </a>
           </div>

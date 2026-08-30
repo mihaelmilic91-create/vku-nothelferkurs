@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 import { distanzKm, geocodeSchweiz } from "./geo.server";
+import { ladeTerminInfo, terminPasst } from "./termine.server";
+import { oeffentlicherAnbieter } from "./anbieter-sichtbarkeit";
 
 function publicClient() {
   return createClient<Database>(
@@ -13,7 +15,7 @@ function publicClient() {
 }
 
 const ANBIETER_FELDER =
-  "id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, sprache, termine_url, website_url, kontakt_email, kontakt_telefon, created_at";
+  "id, user_id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, sprache, termine_url, website_url, kontakt_email, kontakt_telefon, created_at";
 
 export const listKantone = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await publicClient()
@@ -49,7 +51,7 @@ export const listAnbieter = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
     if (error) throw error;
-    return rows ?? [];
+    return (rows ?? []).map(oeffentlicherAnbieter);
   });
 
 export const getAnbieterBySlug = createServerFn({ method: "GET" })
@@ -72,7 +74,7 @@ export const getAnbieterBySlug = createServerFn({ method: "GET" })
       .order("kursbeginn");
     if (termineError) throw termineError;
 
-    return { ...anbieter, termine: termine ?? [] };
+    return { ...oeffentlicherAnbieter(anbieter), termine: termine ?? [] };
   });
 
 const registrierungSchema = z.object({
@@ -138,10 +140,13 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
         lng: z.number().min(-180).max(180).optional(),
         radiusKm: z.number().positive().max(500).optional(),
         kurstyp: z.enum(["vku", "nothelferkurs"]).optional(),
+        terminVon: z.string().max(10).optional(),
+        terminBis: z.string().max(10).optional(),
       })
       .parse(data ?? {}),
   )
   .handler(async ({ data }) => {
+    const supabase = publicClient();
     const suche = (data.ort ?? "").trim();
     const radius = data.radiusKm ?? 20;
     const direkterPunkt =
@@ -149,7 +154,7 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
         ? { label: "Dein Standort", lat: data.lat, lng: data.lng }
         : null;
 
-    let query = publicClient()
+    let query = supabase
       .from("anbieter")
       .select(`${ANBIETER_FELDER}, lat, lng`)
       .eq("status", "aktiv")
@@ -158,7 +163,18 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
     if (error) throw error;
-    const alle = rows ?? [];
+
+    const terminFilterAktiv = Boolean(data.terminVon || data.terminBis);
+    const info = await ladeTerminInfo(
+      supabase,
+      (rows ?? []).map((r) => r.id),
+      { von: data.terminVon ?? null, bis: data.terminBis ?? null },
+    );
+
+    const alle = (rows ?? [])
+      .filter((r) => terminPasst(r.id, info, terminFilterAktiv))
+      .map(oeffentlicherAnbieter)
+      .map((a) => ({ ...a, naechster_termin: info.erstTermin[a.id] ?? null }));
 
     if (!suche && !direkterPunkt) {
       return {
@@ -200,6 +216,7 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
     };
   });
 
+
 export const planeKombi = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
     z
@@ -208,6 +225,8 @@ export const planeKombi = createServerFn({ method: "GET" })
         lat: z.number().min(-90).max(90).optional(),
         lng: z.number().min(-180).max(180).optional(),
         radiusKm: z.number().positive().max(500).optional(),
+        terminVon: z.string().max(10).optional(),
+        terminBis: z.string().max(10).optional(),
       })
       .parse(data ?? {}),
   )
@@ -230,7 +249,16 @@ export const planeKombi = createServerFn({ method: "GET" })
       .order("name");
     if (error) throw error;
 
+    const terminFilterAktiv = Boolean(data.terminVon || data.terminBis);
+    const info = await ladeTerminInfo(
+      supabase,
+      (rows ?? []).map((r) => r.id),
+      { von: data.terminVon ?? null, bis: data.terminBis ?? null },
+    );
+
     const mitDistanz = (rows ?? [])
+      .filter((r) => terminPasst(r.id, info, terminFilterAktiv))
+      .map(oeffentlicherAnbieter)
       .map((a) => ({
         ...a,
         distanz_km:
@@ -256,25 +284,9 @@ export const planeKombi = createServerFn({ method: "GET" })
     const bestesVku = vkuListe[0] ?? null;
     const bestesNothelfer = nothelferListe[0] ?? null;
 
-    const ids = [...kombi, bestesVku, bestesNothelfer]
-      .filter((a): a is (typeof mitDistanz)[number] => Boolean(a))
-      .map((a) => a.id);
-
-    const terminMap: Record<string, string> = {};
-    if (ids.length > 0) {
-      const { data: termine } = await supabase
-        .from("kurstermine")
-        .select("anbieter_id, kursbeginn")
-        .in("anbieter_id", ids)
-        .gte("kursbeginn", new Date().toISOString().slice(0, 10))
-        .order("kursbeginn");
-      for (const t of termine ?? []) {
-        if (!terminMap[t.anbieter_id]) terminMap[t.anbieter_id] = t.kursbeginn;
-      }
-    }
-
     const mitTermin = <T extends { id: string }>(a: T | null) =>
-      a ? { ...a, naechster_termin: terminMap[a.id] ?? null } : null;
+      a ? { ...a, naechster_termin: info.erstTermin[a.id] ?? null } : null;
+
 
     return {
       punkt,

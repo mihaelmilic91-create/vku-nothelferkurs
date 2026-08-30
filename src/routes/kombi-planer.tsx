@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { BeanspruchenLink, UnbeanspruchtBadge, WebsiteLink } from "@/components/unbeansprucht";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteShell, PageHeader } from "@/components/site-shell";
 import { planeKombi } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
+import { TerminFilter, useTerminFilter } from "@/components/termin-filter";
 
 export const Route = createFileRoute("/kombi-planer")({
   head: () => ({
@@ -50,6 +52,8 @@ type PlanerAnbieter = {
   kanton: string | null;
   preis_chf: number | null;
   distanz_km: number | null;
+  beansprucht: boolean;
+  website_url: string | null;
   naechster_termin: string | null;
   lat?: number | null;
   lng?: number | null;
@@ -94,20 +98,35 @@ function PlanerKarte({
         {[a.plz, a.ort].filter(Boolean).join(" ")}
         {a.kanton ? ` · ${a.kanton}` : ""}
       </p>
-      <p className="mt-2 text-xs font-medium text-muted-foreground">
-        Nächster Termin: <span className="font-bold text-foreground">{datum(a.naechster_termin)}</span>
-      </p>
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+      {a.beansprucht ? (
+        <p className="mt-2 text-xs font-medium text-muted-foreground">
+          Nächster Termin:{" "}
+          <span className="font-bold text-foreground">{datum(a.naechster_termin)}</span>
+        </p>
+      ) : null}
+      {a.beansprucht ? null : (
+        <div className="mt-3">
+          <UnbeanspruchtBadge klein />
+        </div>
+      )}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
         <span className="font-display text-lg font-bold text-coral">
           {a.preis_chf != null ? `CHF ${a.preis_chf}` : "Preis auf Anfrage"}
         </span>
-        <Link
-          to="/anbieter/$slug"
-          params={{ slug: a.slug }}
-          className="rounded-full bg-foreground px-4 py-2 font-display text-sm font-semibold text-primary-foreground transition-colors hover:bg-coral"
-        >
-          Profil ansehen
-        </Link>
+        {a.beansprucht ? (
+          <Link
+            to="/anbieter/$slug"
+            params={{ slug: a.slug }}
+            className="rounded-full bg-foreground px-4 py-2 font-display text-sm font-semibold text-primary-foreground transition-colors hover:bg-coral"
+          >
+            Profil ansehen
+          </Link>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <WebsiteLink url={a.website_url} klein />
+            <BeanspruchenLink anbieter={a} klein />
+          </div>
+        )}
       </div>
     </article>
   );
@@ -118,12 +137,13 @@ function KombiPlaner() {
   const [radius, setRadius] = useState(20);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoStatus, setGeoStatus] = useState<"idle" | "laden" | "fehler">("idle");
+  const termin = useTerminFilter();
 
   const plane = useServerFn(planeKombi);
   const debouncedQuery = useDebounced(query.trim(), 350);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["kombi-planer", debouncedQuery, geo, radius],
+    queryKey: ["kombi-planer", debouncedQuery, geo, radius, termin.fenster],
     queryFn: () =>
       plane({
         data: {
@@ -131,10 +151,13 @@ function KombiPlaner() {
           lat: geo?.lat,
           lng: geo?.lng,
           radiusKm: radius,
+          terminVon: termin.fenster.von,
+          terminBis: termin.fenster.bis,
         },
       }),
     placeholderData: (prev: unknown) => prev as never,
   });
+
 
   const standortVerwenden = () => {
     if (!("geolocation" in navigator)) {
@@ -198,7 +221,11 @@ function KombiPlaner() {
               geo ? "bg-mint text-teal" : "bg-background text-teal hover:bg-mint"
             }`}
           >
-            {geoStatus === "laden" ? "Ortung …" : geo ? "📍 Standort aktiv" : "🧭 Standort verwenden"}
+            {geoStatus === "laden"
+              ? "Ortung …"
+              : geo
+                ? "📍 Standort aktiv"
+                : "🧭 Standort verwenden"}
           </button>
         </div>
         {geoStatus === "fehler" ? (
@@ -244,6 +271,9 @@ function KombiPlaner() {
             ))}
           </div>
         </div>
+
+        <TerminFilter {...termin} />
+
       </div>
 
       {punkt ? (

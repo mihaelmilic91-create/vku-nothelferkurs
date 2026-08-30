@@ -1,10 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteShell, PageHeader } from "@/components/site-shell";
 import { listKantone, registriereAnbieter } from "@/lib/verzeichnis.functions";
 
+const suchSchema = z.object({
+  name: z.string().max(120).optional(),
+  plz: z.string().max(10).optional(),
+  ort: z.string().max(80).optional(),
+  kanton: z.string().max(2).optional(),
+});
+
 export const Route = createFileRoute("/fahrschulen-partner")({
+  validateSearch: (search: Record<string, unknown>) => suchSchema.parse(search),
   loader: () => listKantone(),
   head: () => ({
     meta: [
@@ -42,6 +51,7 @@ function Feld({ label, children }: { label: string; children: React.ReactNode })
 
 function Partner() {
   const kantone = Route.useLoaderData();
+  const vorgabe = Route.useSearch();
   const registrieren = useServerFn(registriereAnbieter);
   const [status, setStatus] = useState<"idle" | "senden" | "ok" | "fehler">("idle");
   const [fehler, setFehler] = useState<string | null>(null);
@@ -78,6 +88,17 @@ function Partner() {
 
   return (
     <SiteShell>
+      {vorgabe.name ? (
+        <div className="mb-6 rounded-3xl bg-mint p-5 text-teal">
+          <p className="font-display text-sm font-bold">
+            Du beanspruchst den Eintrag «{vorgabe.name}»
+          </p>
+          <p className="mt-1 text-sm">
+            Wir haben Name und Ort schon eingesetzt. Ergänze deine Kontaktdaten — nach der Prüfung
+            gehört der Eintrag dir.
+          </p>
+        </div>
+      ) : null}
       <PageHeader
         eyebrow="Kostenlos & neutral"
         title="Fahrschulen-Partner werden"
@@ -97,7 +118,7 @@ function Partner() {
           className="grid gap-4 rounded-3xl bg-card p-6 shadow-[0_10px_30px_-22px_rgba(51,43,56,0.6)] md:grid-cols-2"
         >
           <Feld label="Name der Fahrschule *">
-            <input name="name" required className={feldKlasse} />
+            <input name="name" required defaultValue={vorgabe.name ?? ""} className={feldKlasse} />
           </Feld>
           <Feld label="Kursart *">
             <select name="kurstyp" className={feldKlasse} defaultValue="vku">
@@ -111,14 +132,19 @@ function Partner() {
           </Feld>
           <div className="grid grid-cols-[100px_1fr] gap-3">
             <Feld label="PLZ">
-              <input name="plz" className={feldKlasse} />
+              <input name="plz" defaultValue={vorgabe.plz ?? ""} className={feldKlasse} />
             </Feld>
             <Feld label="Ort">
-              <input name="ort" className={feldKlasse} />
+              <input name="ort" defaultValue={vorgabe.ort ?? ""} className={feldKlasse} />
             </Feld>
           </div>
           <Feld label="Kanton *">
-            <select name="kanton" required className={feldKlasse} defaultValue="">
+            <select
+              name="kanton"
+              required
+              className={feldKlasse}
+              defaultValue={vorgabe.kanton ?? ""}
+            >
               <option value="" disabled>
                 Bitte wählen
               </option>
