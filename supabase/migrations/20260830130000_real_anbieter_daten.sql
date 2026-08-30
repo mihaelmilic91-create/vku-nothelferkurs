@@ -29,17 +29,7 @@ VALUES
 
   ('Fahrschule Hefti (Züri VKU)', 'fahrschule-hefti-zueri-vku', 'Niederdorfstrasse 63', '8001', 'Zürich', 'ZH', 'vku', 99, ARRAY['Deutsch'], 'https://fahrschule-hefti.ch/verkehrskundeunterricht-vku-zuerich/', 'paul-hefti@bluewin.ch', '078 830 55 51', 'https://fahrschule-hefti.ch/verkehrskundeunterricht-vku-zuerich/', 'aktiv', 47.3745, 8.5440),
 
-  ('BLINK Zürich', 'blink-zuerich', 'Bederstrasse 1', '8002', 'Zürich', 'ZH', 'beide', 170, ARRAY['Deutsch'], 'https://blinkdrive.ch/vku-zuerich/', 'mail@blinkdrive.ch', '031 539 10 65', 'https://blinkdrive.ch/vku-zuerich/', 'aktiv', 47.3660, 8.5310),
-
   ('VKU Bern (Berndrive)', 'vku-bern-berndrive', 'Bubenbergplatz 8', '3011', 'Bern', 'BE', 'beide', 149, ARRAY['Deutsch'], 'https://vkubern.ch/', NULL, '078 237 27 49', 'https://vkubern.ch/', 'aktiv', 46.9480, 7.4390),
-
-  ('BLINK Bern', 'blink-bern', 'Marktgasse 28', '3011', 'Bern', 'BE', 'beide', 170, ARRAY['Deutsch'], 'https://blinkdrive.ch/nothelferkurs-bern/', 'mail@blinkdrive.ch', '031 539 10 65', 'https://blinkdrive.ch/nothelferkurs-bern/', 'aktiv', 46.9483, 7.4470),
-
-  ('BLINK Aarau', 'blink-aarau', 'Industriestrasse 1', '5000', 'Aarau', 'AG', 'beide', 170, ARRAY['Deutsch'], 'https://blinkdrive.ch/nothelferkurs-aargau/', 'mail@blinkdrive.ch', '031 539 10 65', 'https://blinkdrive.ch/nothelferkurs-aargau/', 'aktiv', 47.3900, 8.0480),
-
-  ('BLINK Luzern', 'blink-luzern', 'Habsburgerstrasse 21', '6003', 'Luzern', 'LU', 'beide', 190, ARRAY['Deutsch'], 'https://blinkdrive.ch/vku-luzern/', 'mail@blinkdrive.ch', '031 539 10 65', 'https://blinkdrive.ch/vku-luzern/', 'aktiv', 47.0510, 8.3080),
-
-  ('BLINK Basel', 'blink-basel', 'Wallstrasse 8', '4051', 'Basel', 'BS', 'beide', 170, ARRAY['Deutsch'], 'https://blinkdrive.ch/nothelferkurs-basel/', 'mail@blinkdrive.ch', '031 539 10 65', 'https://blinkdrive.ch/nothelferkurs-basel/', 'aktiv', 47.5540, 7.5870),
 
   ('Fahrschule Blumer', 'fahrschule-blumer-basel', 'Hochstrasse 4', '4053', 'Basel', 'BS', 'nothelferkurs', 69, ARRAY['Deutsch'], 'https://fahrschule-blumer.ch/kurse/nothelferkurs-basel/', NULL, NULL, 'https://fahrschule-blumer.ch/kurse/nothelferkurs-basel/', 'aktiv', 47.5470, 7.5890),
 
