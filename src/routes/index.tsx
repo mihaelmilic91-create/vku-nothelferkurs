@@ -312,12 +312,14 @@ function Index() {
             </div>
             <div className="absolute -bottom-5 left-6 flex items-center gap-3 rounded-2xl bg-card px-4 py-3 shadow-[0_16px_36px_-16px_rgba(51,43,56,0.5)]">
               <div className="grid size-9 place-items-center rounded-full bg-mint font-display text-sm font-bold text-teal">
-                {results.length}
+                {isLoading && !data ? "…" : results.length}
               </div>
               <div className="leading-tight">
                 <div className="text-sm font-bold">Kursorte</div>
                 <div className="text-[11px] text-muted-foreground">
-                  in {kantonAnzahl} {kantonAnzahl === 1 ? "Kanton" : "Kantonen"}
+                  {isLoading && !data
+                    ? "wird geladen …"
+                    : `in ${kantonAnzahl} ${kantonAnzahl === 1 ? "Kanton" : "Kantonen"}`}
                 </div>
               </div>
             </div>
@@ -331,8 +333,9 @@ function Index() {
               Verfügbare Kurse in <span className="text-coral">{headingRegion}</span>
             </h2>
             <span className="text-sm font-semibold text-teal">
-              {results.length} Anbieter gefunden
-              {punkt ? ` · sortiert nach Distanz zu ${punkt.label}` : ""}
+              {isLoading && !data
+                ? "Suche läuft …"
+                : `${results.length} Anbieter gefunden${punkt ? ` · sortiert nach Distanz zu ${punkt.label}` : ""}`}
             </span>
           </div>
 
@@ -414,13 +417,7 @@ function Index() {
                           </span>
                         ) : null}
                       </span>
-                    ) : (
-                      <span
-                        className={`mt-1 size-2.5 rounded-full ${
-                          i % 3 === 0 ? "bg-teal" : i % 3 === 1 ? "bg-sun" : "bg-coral"
-                        }`}
-                      ></span>
-                    )}
+                    ) : null}
                   </div>
                   <h3 className="mt-4 font-display text-xl font-bold leading-snug">{a.name}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
