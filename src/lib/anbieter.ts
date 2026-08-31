@@ -1,5 +1,16 @@
 export type Kursart = "VKU" | "Nothelferkurs" | "VKU + Nothelfer";
 
+export function preisAnzeige(a: {
+  kurstyp: string;
+  preis_chf: number | null;
+  preis_nothelferkurs_chf?: number | null;
+}): string | null {
+  if (a.kurstyp === "beide" && a.preis_chf != null && a.preis_nothelferkurs_chf != null) {
+    return `VKU CHF ${a.preis_chf} · Nothelferkurs CHF ${a.preis_nothelferkurs_chf}`;
+  }
+  return a.preis_chf != null ? `CHF ${a.preis_chf}` : null;
+}
+
 export interface Anbieter {
   id: string;
   name: string;

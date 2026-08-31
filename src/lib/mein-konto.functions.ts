@@ -8,7 +8,7 @@ export const meinAnbieter = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("anbieter")
       .select(
-        "id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, termine_url, website_url, kontakt_email, kontakt_telefon, status",
+        "id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, preis_nothelferkurs_chf, termine_url, website_url, kontakt_email, kontakt_telefon, status",
       )
       .eq("user_id", context.userId)
       .maybeSingle();
@@ -27,6 +27,7 @@ export const aktualisiereMeinAnbieter = createServerFn({ method: "POST" })
         kontakt_email: z.string().email().max(160),
         kontakt_telefon: z.string().max(40).optional().or(z.literal("")),
         preis_chf: z.number().nonnegative().max(10000).optional(),
+        preis_nothelferkurs_chf: z.number().nonnegative().max(10000).optional(),
       })
       .parse(data),
   )
@@ -39,6 +40,7 @@ export const aktualisiereMeinAnbieter = createServerFn({ method: "POST" })
         kontakt_email: data.kontakt_email,
         kontakt_telefon: data.kontakt_telefon || null,
         preis_chf: data.preis_chf ?? null,
+        preis_nothelferkurs_chf: data.preis_nothelferkurs_chf ?? null,
       })
       .eq("id", data.id)
       .eq("user_id", context.userId);

@@ -15,7 +15,7 @@ function publicClient() {
 }
 
 const ANBIETER_FELDER =
-  "id, user_id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, sprache, termine_url, website_url, kontakt_email, kontakt_telefon, created_at";
+  "id, user_id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, preis_nothelferkurs_chf, bevorzugt, sprache, termine_url, website_url, kontakt_email, kontakt_telefon, created_at";
 
 export const listKantone = createServerFn({ method: "GET" }).handler(async () => {
   const DEUTSCHSCHWEIZ = ["AG", "AI", "AR", "BE", "BL", "BS", "GL", "GR", "LU", "NW", "OW", "SG", "SH", "SO", "SZ", "TG", "UR", "ZG", "ZH"];
@@ -87,6 +87,7 @@ const registrierungSchema = z.object({
   kanton: z.string().length(2),
   kurstyp: z.enum(["vku", "nothelferkurs", "beide"]),
   preis_chf: z.number().nonnegative().max(10000).optional(),
+  preis_nothelferkurs_chf: z.number().nonnegative().max(10000).optional(),
   termine_url: z.string().url().max(300).optional().or(z.literal("")),
   website_url: z.string().url().max(300).optional().or(z.literal("")),
   kontakt_email: z.string().email().max(160),
@@ -124,6 +125,7 @@ export const registriereAnbieter = createServerFn({ method: "POST" })
       kanton: data.kanton.toUpperCase(),
       kurstyp: data.kurstyp,
       preis_chf: data.preis_chf ?? null,
+      preis_nothelferkurs_chf: data.preis_nothelferkurs_chf ?? null,
       termine_url: data.termine_url || null,
       website_url: data.website_url || null,
       kontakt_email: data.kontakt_email,
@@ -178,7 +180,8 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
     const alle = (rows ?? [])
       .filter((r) => terminPasst(r.id, info, terminFilterAktiv))
       .map(oeffentlicherAnbieter)
-      .map((a) => ({ ...a, naechster_termin: info.erstTermin[a.id] ?? null }));
+      .map((a) => ({ ...a, naechster_termin: info.erstTermin[a.id] ?? null }))
+      .sort((a, b) => Number(b.bevorzugt) - Number(a.bevorzugt));
 
     if (!suche && !direkterPunkt) {
       return {
@@ -207,7 +210,11 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
             ? Math.round(distanzKm(punkt.lat, punkt.lng, a.lat, a.lng) * 10) / 10
             : null,
       }))
-      .sort((a, b) => (a.distanz_km ?? Infinity) - (b.distanz_km ?? Infinity));
+      .sort(
+        (a, b) =>
+          Number(b.bevorzugt) - Number(a.bevorzugt) ||
+          (a.distanz_km ?? Infinity) - (b.distanz_km ?? Infinity),
+      );
 
     const imRadius = mitDistanz.filter((a) => a.distanz_km != null && a.distanz_km <= radius);
     const ausserhalb = imRadius.length === 0;
@@ -270,7 +277,11 @@ export const planeKombi = createServerFn({ method: "GET" })
             ? Math.round(distanzKm(punkt.lat, punkt.lng, a.lat, a.lng) * 10) / 10
             : null,
       }))
-      .sort((a, b) => (a.distanz_km ?? Infinity) - (b.distanz_km ?? Infinity));
+      .sort(
+        (a, b) =>
+          Number(b.bevorzugt) - Number(a.bevorzugt) ||
+          (a.distanz_km ?? Infinity) - (b.distanz_km ?? Infinity),
+      );
 
     const imRadius = (liste: typeof mitDistanz) => {
       if (!punkt) return liste;

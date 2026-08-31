@@ -5,7 +5,7 @@ import { LogoMark } from "@/components/logo";
 import { BeanspruchenLink, UnbeanspruchtBadge, WebsiteLink } from "@/components/unbeansprucht";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { KANTONE } from "@/lib/anbieter";
+import { KANTONE, preisAnzeige } from "@/lib/anbieter";
 import { sucheAnbieterUmkreis } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
 import { useTerminFilter } from "@/components/termin-filter";
@@ -475,7 +475,7 @@ function Index() {
                   )}
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
                     <span className="font-display text-lg font-bold text-coral">
-                      {a.preis_chf != null ? `CHF ${a.preis_chf}` : "Preis auf Anfrage"}
+                      {preisAnzeige(a) ?? "Preis auf Anfrage"}
                     </span>
                     {a.beansprucht ? (
                       <Link

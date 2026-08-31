@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { preisAnzeige } from "@/lib/anbieter";
 
 export interface AnbieterKarteDaten {
   slug: string;
@@ -8,6 +9,7 @@ export interface AnbieterKarteDaten {
   kanton: string | null;
   kurstyp: string;
   preis_chf: number | null;
+  preis_nothelferkurs_chf?: number | null;
   termine_url: string | null;
 }
 
@@ -34,7 +36,7 @@ export function AnbieterKarte({ anbieter }: { anbieter: AnbieterKarteDaten }) {
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <span className="font-display text-sm font-semibold">
-          {anbieter.preis_chf != null ? `ab CHF ${anbieter.preis_chf}` : "Preis auf Anfrage"}
+          {preisAnzeige(anbieter) ?? "Preis auf Anfrage"}
         </span>
         <Link
           to="/anbieter/$slug"

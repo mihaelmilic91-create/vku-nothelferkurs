@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { SiteShell, PageHeader } from "@/components/site-shell";
 import { getAnbieterBySlug } from "@/lib/verzeichnis.functions";
+import { preisAnzeige } from "@/lib/anbieter";
 import { GutscheinModal } from "@/components/gutschein-modal";
 import { BeanspruchenLink, UnbeanspruchtBadge, WebsiteLink } from "@/components/unbeansprucht";
 
@@ -160,9 +161,7 @@ function AnbieterDetail() {
           <div className="mt-3">
             <Zeile label="Kursart">{KURSTYP_LABEL[a.kurstyp] ?? a.kurstyp}</Zeile>
             <Zeile label="Kanton">{a.kanton ?? "—"}</Zeile>
-            <Zeile label="Preis">
-              {a.preis_chf != null ? `CHF ${a.preis_chf}` : "auf Anfrage"}
-            </Zeile>
+            <Zeile label="Preis">{preisAnzeige(a) ?? "auf Anfrage"}</Zeile>
             {a.beansprucht ? (
               <>
                 <Zeile label="Kurssprachen">{(a.sprache ?? []).join(", ") || "—"}</Zeile>

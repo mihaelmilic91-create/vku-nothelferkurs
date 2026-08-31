@@ -7,6 +7,7 @@ import { SiteShell, PageHeader } from "@/components/site-shell";
 import { planeKombi } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
 import { useTerminFilter } from "@/components/termin-filter";
+import { preisAnzeige } from "@/lib/anbieter";
 
 export const Route = createFileRoute("/kombi-planer")({
   head: () => ({
@@ -50,7 +51,9 @@ type PlanerAnbieter = {
   plz: string | null;
   ort: string | null;
   kanton: string | null;
+  kurstyp: string;
   preis_chf: number | null;
+  preis_nothelferkurs_chf: number | null;
   distanz_km: number | null;
   beansprucht: boolean;
   website_url: string | null;
@@ -111,7 +114,7 @@ function PlanerKarte({
       )}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
         <span className="font-display text-lg font-bold text-coral">
-          {a.preis_chf != null ? `CHF ${a.preis_chf}` : "Preis auf Anfrage"}
+          {preisAnzeige(a) ?? "Preis auf Anfrage"}
         </span>
         {a.beansprucht ? (
           <Link

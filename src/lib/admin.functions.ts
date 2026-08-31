@@ -21,7 +21,7 @@ export const adminUebersicht = createServerFn({ method: "GET" })
     const { data: anbieter, error } = await context.supabase
       .from("anbieter")
       .select(
-        "id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, termine_url, website_url, kontakt_email, kontakt_telefon, status, created_at, ersetzt_anbieter_id",
+        "id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, preis_nothelferkurs_chf, bevorzugt, termine_url, website_url, kontakt_email, kontakt_telefon, status, created_at, ersetzt_anbieter_id",
       )
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -131,6 +131,7 @@ export const adminAktualisiereAnbieter = createServerFn({ method: "POST" })
         kanton: z.string().max(4).optional().or(z.literal("")),
         kurstyp: z.enum(["vku", "nothelferkurs", "beide"]),
         preis_chf: z.number().nonnegative().max(10000).nullable().optional(),
+        preis_nothelferkurs_chf: z.number().nonnegative().max(10000).nullable().optional(),
         termine_url: z.string().url().max(300).optional().or(z.literal("")),
         website_url: z.string().url().max(300).optional().or(z.literal("")),
         kontakt_email: z.string().email().max(160).optional().or(z.literal("")),
@@ -150,11 +151,27 @@ export const adminAktualisiereAnbieter = createServerFn({ method: "POST" })
         kanton: data.kanton || null,
         kurstyp: data.kurstyp,
         preis_chf: data.preis_chf ?? null,
+        preis_nothelferkurs_chf: data.preis_nothelferkurs_chf ?? null,
         termine_url: data.termine_url || null,
         website_url: data.website_url || null,
         kontakt_email: data.kontakt_email || null,
         kontakt_telefon: data.kontakt_telefon || null,
       })
+      .eq("id", data.id);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
+export const adminSetzeBevorzugt = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({ id: z.string().uuid(), bevorzugt: z.boolean() }).parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase
+      .from("anbieter")
+      .update({ bevorzugt: data.bevorzugt })
       .eq("id", data.id);
     if (error) throw error;
     return { ok: true as const };

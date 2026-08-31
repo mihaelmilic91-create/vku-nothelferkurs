@@ -64,6 +64,7 @@ function MeinKonto() {
       kontakt_email: string;
       kontakt_telefon?: string;
       preis_chf?: number | undefined;
+      preis_nothelferkurs_chf?: number | undefined;
     }) => speichern({ data: values }),
     onSuccess: () => {
       setMeldung("Gespeichert.");
@@ -100,6 +101,7 @@ function MeinKonto() {
             event.preventDefault();
             const form = new FormData(event.currentTarget);
             const preis = String(form.get("preis_chf") ?? "").trim();
+            const preisNothelfer = String(form.get("preis_nothelferkurs_chf") ?? "").trim();
             mutation.mutate({
               id: data.id,
               termine_url: String(form.get("termine_url") ?? ""),
@@ -107,6 +109,7 @@ function MeinKonto() {
               kontakt_email: String(form.get("kontakt_email") ?? ""),
               kontakt_telefon: String(form.get("kontakt_telefon") ?? ""),
               preis_chf: preis ? Number(preis) : undefined,
+              preis_nothelferkurs_chf: preisNothelfer ? Number(preisNothelfer) : undefined,
             });
           }}
         >
@@ -138,7 +141,7 @@ function MeinKonto() {
             <input name="kontakt_telefon" defaultValue={data.kontakt_telefon ?? ""} className={`mt-1.5 ${feldKlasse}`} />
           </label>
           <label className="mt-4 block text-sm font-semibold">
-            Preis in CHF
+            Preis in CHF{data.kurstyp === "beide" ? " (VKU)" : ""}
             <input
               name="preis_chf"
               type="number"
@@ -148,6 +151,19 @@ function MeinKonto() {
               className={`mt-1.5 ${feldKlasse}`}
             />
           </label>
+          {data.kurstyp === "beide" ? (
+            <label className="mt-4 block text-sm font-semibold">
+              Preis Nothelferkurs in CHF
+              <input
+                name="preis_nothelferkurs_chf"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue={data.preis_nothelferkurs_chf ?? ""}
+                className={`mt-1.5 ${feldKlasse}`}
+              />
+            </label>
+          ) : null}
 
           {meldung ? <p className="mt-3 text-sm text-muted-foreground">{meldung}</p> : null}
           <button

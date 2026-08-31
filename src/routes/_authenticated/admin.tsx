@@ -10,6 +10,7 @@ import {
   setzeAnbieterStatus,
   adminFuegeTerminHinzu,
   adminLoescheTermin,
+  adminSetzeBevorzugt,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -43,6 +44,8 @@ type Anbieter = {
   kanton: string | null;
   kurstyp: "vku" | "nothelferkurs" | "beide";
   preis_chf: number | null;
+  preis_nothelferkurs_chf: number | null;
+  bevorzugt: boolean;
   termine_url: string | null;
   website_url: string | null;
   kontakt_email: string | null;
@@ -105,6 +108,11 @@ function AdminSeite() {
   });
   const terminLoeschenMutation = useMutation({
     mutationFn: (id: string) => terminLoeschenFn({ data: { id } }),
+    onSuccess: () => void refetch(),
+  });
+  const bevorzugtFn = useServerFn(adminSetzeBevorzugt);
+  const bevorzugtMutation = useMutation({
+    mutationFn: (v: { id: string; bevorzugt: boolean }) => bevorzugtFn({ data: v }),
     onSuccess: () => void refetch(),
   });
 
@@ -184,6 +192,11 @@ function AdminSeite() {
                         >
                           {a.status}
                         </span>
+                        {a.bevorzugt ? (
+                          <span className="rounded-full bg-sun/40 px-3 py-1 text-xs font-semibold">
+                            ⭐ Bevorzugt
+                          </span>
+                        ) : null}
                         <button
                           type="button"
                           onClick={() =>
@@ -195,6 +208,15 @@ function AdminSeite() {
                           className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-primary-foreground"
                         >
                           {a.status === "aktiv" ? "Deaktivieren" : "Freischalten"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            bevorzugtMutation.mutate({ id: a.id, bevorzugt: !a.bevorzugt })
+                          }
+                          className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold"
+                        >
+                          {a.bevorzugt ? "Nicht mehr bevorzugen" : "Bevorzugen"}
                         </button>
                         <button
                           type="button"
@@ -230,6 +252,9 @@ function AdminSeite() {
                           e.preventDefault();
                           const f = new FormData(e.currentTarget);
                           const preis = String(f.get("preis_chf") ?? "").trim();
+                          const preisNothelfer = String(
+                            f.get("preis_nothelferkurs_chf") ?? "",
+                          ).trim();
                           speichernMutation.mutate({
                             id: a.id,
                             name: String(f.get("name") ?? ""),
@@ -239,6 +264,8 @@ function AdminSeite() {
                             kanton: String(f.get("kanton") ?? ""),
                             kurstyp: String(f.get("kurstyp") ?? "vku"),
                             preis_chf: preis === "" ? null : Number(preis),
+                            preis_nothelferkurs_chf:
+                              preisNothelfer === "" ? null : Number(preisNothelfer),
                             termine_url: String(f.get("termine_url") ?? ""),
                             website_url: String(f.get("website_url") ?? ""),
                             kontakt_email: String(f.get("kontakt_email") ?? ""),
@@ -287,7 +314,15 @@ function AdminSeite() {
                           type="number"
                           step="1"
                           defaultValue={a.preis_chf ?? ""}
-                          placeholder="Preis CHF"
+                          placeholder="Preis CHF (VKU, falls beide)"
+                        />
+                        <input
+                          className={feld}
+                          name="preis_nothelferkurs_chf"
+                          type="number"
+                          step="1"
+                          defaultValue={a.preis_nothelferkurs_chf ?? ""}
+                          placeholder="Preis Nothelferkurs CHF (nur falls beide)"
                         />
                         <input
                           className={feld}
