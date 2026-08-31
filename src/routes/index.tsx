@@ -504,7 +504,7 @@ function Index() {
             <div className="grid gap-6 md:grid-cols-[1.2fr_1fr] md:items-center">
               <div>
                 <h2 className="font-display text-2xl font-bold sm:text-3xl">
-                  Gratis Gutschein für deine Theorieprüfung 🎁
+                  Gratis Gutschein für deine praktische Prüfung 🎁
                 </h2>
                 <p className="mt-3 text-[15px] leading-relaxed text-foreground/80">{GUTSCHEIN_TEXT}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
