@@ -45,11 +45,6 @@ const KURSTYP_LABEL: Record<string, string> = {
   beide: "VKU + Nothelfer",
 };
 
-const KANTON_GEO_NAME: Record<string, string> = {
-  Waadt: "Vaud",
-  Tessin: "Ticino",
-};
-
 const RADIEN = [5, 10, 20, 50];
 
 function useDebounced<T>(wert: T, ms: number) {
@@ -61,7 +56,7 @@ function useDebounced<T>(wert: T, ms: number) {
   return debounced;
 }
 
-const QUICK_REGIONS = ["Zürich", "Bern", "Basel", "Genf"];
+const QUICK_REGIONS = ["Zürich", "Bern", "Basel", "Luzern"];
 
 const CHIP_STYLES = [
   "bg-bubble text-coral hover:bg-coral/20",
@@ -86,7 +81,7 @@ function Index() {
     queryFn: () =>
       suche({
         data: {
-          ort: (KANTON_GEO_NAME[debouncedQuery] ?? debouncedQuery) || undefined,
+          ort: debouncedQuery || undefined,
           lat: geo?.lat,
           lng: geo?.lng,
           radiusKm: radius,

@@ -17,10 +17,18 @@ function publicClient() {
 const ANBIETER_FELDER =
   "id, user_id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, sprache, termine_url, website_url, kontakt_email, kontakt_telefon, created_at";
 
+// vku-nothelferkurs.ch ist auf die Deutschschweiz ausgerichtet (Domain, Sprache, Anbieter).
+// Französisch-/italienischsprachige Kantone werden daher nicht gelistet.
+const DEUTSCHSCHWEIZ_KANTONE = [
+  "AG", "AI", "AR", "BE", "BL", "BS", "GL", "GR", "LU",
+  "NW", "OW", "SG", "SH", "SO", "SZ", "TG", "UR", "ZG", "ZH",
+];
+
 export const listKantone = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await publicClient()
     .from("kantone")
     .select("kuerzel, name")
+    .in("kuerzel", DEUTSCHSCHWEIZ_KANTONE)
     .order("name");
   if (error) throw error;
   return data ?? [];

@@ -21,10 +21,7 @@ export const KANTONE = [
   "Basel-Stadt",
   "Luzern",
   "St. Gallen",
-  "Genf",
-  "Waadt",
   "Aargau",
-  "Tessin",
   "Winterthur",
 ] as const;
 
