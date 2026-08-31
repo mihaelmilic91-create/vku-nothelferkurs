@@ -34,7 +34,7 @@ function UeberUns() {
           verständliche und aktuelle Übersicht über alle Kantone zu geben.
         </p>
         <p>
-          Anbieter werden manuell geprüft, bevor sie im Verzeichnis erscheinen. Fehlt eine Fahrschule
+          Anbieter werden manuell geprüft, bevor sie im Verzeichnis erscheinen. Fehlt ein Anbieter
           oder stimmt eine Angabe nicht? Wir freuen uns über jeden Hinweis.
         </p>
       </div>

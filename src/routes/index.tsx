@@ -173,7 +173,7 @@ function Index() {
             to="/fahrschulen-partner"
             className="rounded-full bg-card px-5 py-2.5 font-display text-sm font-semibold text-foreground shadow-[0_6px_16px_-8px_rgba(51,43,56,0.4)] transition-transform hover:-translate-y-0.5"
           >
-            Fahrschule eintragen
+            Anbieter eintragen
           </Link>
         </header>
 

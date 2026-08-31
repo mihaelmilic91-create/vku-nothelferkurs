@@ -193,7 +193,7 @@ function KombiPlaner() {
       <PageHeader
         eyebrow="Beide Pflichtkurse planen"
         title="Kombi-Planer"
-        lead="Wie schaffst du VKU und Nothelferkurs am schnellsten in deiner Nähe? Wir kombinieren neutral über alle Anbieter hinweg — an einem Ort oder aus zwei Fahrschulen."
+        lead="Wie schaffst du VKU und Nothelferkurs am schnellsten in deiner Nähe? Wir kombinieren neutral über alle Anbieter hinweg — an einem Ort oder aus zwei unterschiedlichen Anbietern."
       />
 
       <div className="rounded-[28px] bg-card p-3 shadow-[0_24px_50px_-24px_rgba(51,43,56,0.45)]">

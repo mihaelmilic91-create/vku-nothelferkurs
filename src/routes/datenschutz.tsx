@@ -31,7 +31,7 @@ function Datenschutz() {
         <div>
           <h2 className="font-display text-base font-bold text-foreground">Anbieterangaben</h2>
           <p className="mt-1">
-            Wenn sich eine Fahrschule anmeldet, speichern wir die im Formular angegebenen Kontakt- und
+            Wenn sich ein Anbieter anmeldet, speichern wir die im Formular angegebenen Kontakt- und
             Kursdaten. Diese werden nach der Freischaltung öffentlich im Verzeichnis angezeigt.
           </p>
         </div>

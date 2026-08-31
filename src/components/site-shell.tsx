@@ -39,7 +39,7 @@ export function SiteHeader() {
         to="/fahrschulen-partner"
         className="rounded-full bg-card px-5 py-2.5 font-display text-sm font-semibold text-foreground shadow-[0_6px_16px_-8px_rgba(51,43,56,0.4)] transition-transform hover:-translate-y-0.5"
       >
-        Für Fahrschulen
+        Für Kursanbieter
       </Link>
     </header>
   );
@@ -56,7 +56,7 @@ export function SiteFooter() {
           Kontakt
         </Link>
         <Link to="/fahrschulen-partner" className="hover:text-coral">
-          Fahrschulen-Partner
+          Anbieter-Partner
         </Link>
         <Link to="/auth" className="hover:text-coral">
           Anbieter-Login

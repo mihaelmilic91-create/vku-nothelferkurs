@@ -33,7 +33,7 @@ function Kontakt() {
           </a>
         </p>
         <p className="mt-4 text-muted-foreground">
-          Fahrschulen melden sich am besten direkt über das Partnerformular an.
+          Kursanbieter melden sich am besten direkt über das Partnerformular an.
         </p>
       </div>
     </SiteShell>

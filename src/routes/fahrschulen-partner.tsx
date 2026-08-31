@@ -17,13 +17,13 @@ export const Route = createFileRoute("/fahrschulen-partner")({
   loader: () => listKantone(),
   head: () => ({
     meta: [
-      { title: "Für Fahrschulen: kostenlos ins Verzeichnis eintragen" },
+      { title: "Für Kursanbieter: kostenlos ins Verzeichnis eintragen" },
       {
         name: "description",
         content:
-          "Fahrschulen und Kursanbieter können sich kostenlos für das neutrale VKU- und Nothelferkurs-Verzeichnis anmelden.",
+          "Fahrschulen, Samaritervereine und andere Kursanbieter können sich kostenlos für das neutrale VKU- und Nothelferkurs-Verzeichnis anmelden.",
       },
-      { property: "og:title", content: "Fahrschulen-Partner werden" },
+      { property: "og:title", content: "Kursanbieter werden" },
       {
         property: "og:description",
         content: "Kostenloser Eintrag im neutralen Schweizer Kursverzeichnis.",
@@ -101,9 +101,14 @@ function Partner() {
       ) : null}
       <PageHeader
         eyebrow="Kostenlos & neutral"
-        title="Fahrschulen-Partner werden"
-        lead="Trage deine Fahrschule oder Kursorganisation ein. Wir prüfen jeden Eintrag manuell und schalten ihn danach frei. Danach kannst du deine Angaben und deine Termine-Seite selbst verwalten."
+        title="Kursanbieter werden"
+        lead="Trage deine Fahrschule, deinen Samariterverein oder deine Kursorganisation ein. Wir prüfen jeden Eintrag manuell und schalten ihn danach frei. Danach kannst du deine Angaben und deine Termine-Seite selbst verwalten."
       />
+      <p className="mb-6 max-w-2xl text-xs text-muted-foreground">
+        Hinweis: VKU dürfen in der Schweiz nur anerkannte Fahrlehrer:innen bzw. Fahrschulen anbieten.
+        Nothelferkurse können auch von anderen anerkannten Organisationen durchgeführt werden, z. B.
+        Samaritervereinen, dem Roten Kreuz oder privaten Erste-Hilfe-Anbietern.
+      </p>
 
       {status === "ok" ? (
         <div className="rounded-3xl bg-mint p-8 text-teal">
@@ -117,7 +122,7 @@ function Partner() {
           onSubmit={onSubmit}
           className="grid gap-4 rounded-3xl bg-card p-6 shadow-[0_10px_30px_-22px_rgba(51,43,56,0.6)] md:grid-cols-2"
         >
-          <Feld label="Name der Fahrschule *">
+          <Feld label="Name des Anbieters *">
             <input name="name" required defaultValue={vorgabe.name ?? ""} className={feldKlasse} />
           </Feld>
           <Feld label="Kursart *">

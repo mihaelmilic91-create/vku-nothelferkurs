@@ -16,7 +16,7 @@ export const Route = createFileRoute("/kombiangebote")({
       { property: "og:title", content: "Kombiangebote für VKU & Nothelferkurs" },
       {
         property: "og:description",
-        content: "Beide Pflichtkurse bei einer Fahrschule buchen — Übersicht aller Kombianbieter.",
+        content: "Beide Pflichtkurse bei einem Anbieter buchen — Übersicht aller Kombianbieter.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
