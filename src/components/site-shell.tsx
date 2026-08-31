@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { LogoMark } from "@/components/logo";
 
 const NAV = [
   { to: "/vku", label: "VKU" },
@@ -13,9 +14,7 @@ export function SiteHeader() {
   return (
     <header className="flex flex-wrap items-center justify-between gap-4 py-6">
       <Link to="/" className="flex items-center gap-2.5">
-        <div className="grid size-10 place-items-center rounded-2xl bg-coral font-display text-lg font-bold text-primary-foreground shadow-[0_8px_20px_-6px_rgba(255,107,138,0.7)]">
-          v
-        </div>
+        <LogoMark className="size-10" />
         <div className="leading-tight">
           <div className="font-display text-lg font-bold">vku-nothelferkurs.ch</div>
           <div className="text-[11px] font-medium text-muted-foreground">

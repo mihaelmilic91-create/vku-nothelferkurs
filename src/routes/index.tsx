@@ -7,6 +7,7 @@ import { KANTONE } from "@/lib/anbieter";
 import { sucheAnbieterUmkreis } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
 import { TerminFilter, useTerminFilter } from "@/components/termin-filter";
+import { LogoMark } from "@/components/logo";
 import swissMap from "@/assets/swiss-map.jpg";
 
 export const Route = createFileRoute("/")({
@@ -129,9 +130,7 @@ function Index() {
         {/* Nav */}
         <header className="flex items-center justify-between py-6">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="grid size-10 place-items-center rounded-2xl bg-coral font-display text-lg font-bold text-primary-foreground shadow-[0_8px_20px_-6px_rgba(255,107,138,0.7)]">
-              v
-            </div>
+            <LogoMark className="size-10" />
             <div className="leading-tight">
               <div className="font-display text-lg font-bold">vku-nothelferkurs.ch</div>
               <div className="text-[11px] font-medium text-muted-foreground">
