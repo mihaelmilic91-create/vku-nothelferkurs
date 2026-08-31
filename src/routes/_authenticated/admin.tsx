@@ -8,6 +8,8 @@ import {
   adminAktualisiereAnbieter,
   loescheAnbieter,
   setzeAnbieterStatus,
+  adminFuegeTerminHinzu,
+  adminLoescheTermin,
 } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -50,13 +52,23 @@ type Anbieter = {
   ersetzt_anbieter_id: string | null;
 };
 
+type Termin = {
+  id: string;
+  anbieter_id: string;
+  kursbeginn: string;
+  plaetze_frei: number | null;
+};
+
 function AdminSeite() {
   const laden = useServerFn(adminUebersicht);
   const statusFn = useServerFn(setzeAnbieterStatus);
   const speichernFn = useServerFn(adminAktualisiereAnbieter);
   const loeschenFn = useServerFn(loescheAnbieter);
+  const terminHinzufuegenFn = useServerFn(adminFuegeTerminHinzu);
+  const terminLoeschenFn = useServerFn(adminLoescheTermin);
 
   const [bearbeitet, setBearbeitet] = useState<string | null>(null);
+  const [termineOffen, setTermineOffen] = useState<string | null>(null);
   const [meldung, setMeldung] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -85,6 +97,15 @@ function AdminSeite() {
       setMeldung("Anbieter gelöscht.");
       void refetch();
     },
+  });
+  const terminHinzufuegenMutation = useMutation({
+    mutationFn: (v: { anbieter_id: string; kursbeginn: string; plaetze_frei?: number }) =>
+      terminHinzufuegenFn({ data: v }),
+    onSuccess: () => void refetch(),
+  });
+  const terminLoeschenMutation = useMutation({
+    mutationFn: (id: string) => terminLoeschenFn({ data: { id } }),
+    onSuccess: () => void refetch(),
   });
 
   if (isError) {
@@ -174,6 +195,13 @@ function AdminSeite() {
                           className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-primary-foreground"
                         >
                           {a.status === "aktiv" ? "Deaktivieren" : "Freischalten"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTermineOffen(termineOffen === a.id ? null : a.id)}
+                          className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold"
+                        >
+                          {termineOffen === a.id ? "Termine schliessen" : "Termine"}
                         </button>
                         <button
                           type="button"
@@ -294,6 +322,89 @@ function AdminSeite() {
                           </button>
                         </div>
                       </form>
+                    ) : null}
+
+                    {termineOffen === a.id ? (
+                      <div className="mt-5 border-t border-border pt-5">
+                        {(() => {
+                          const eigeneTermine = (data.termine as Termin[]).filter(
+                            (t) => t.anbieter_id === a.id,
+                          );
+                          return eigeneTermine.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                              Noch keine Termine erfasst.
+                            </p>
+                          ) : (
+                            <ul className="space-y-2">
+                              {eigeneTermine.map((t) => (
+                                <li
+                                  key={t.id}
+                                  className="flex items-center justify-between gap-3 rounded-2xl bg-background px-4 py-2.5 text-sm"
+                                >
+                                  <span className="font-medium">
+                                    {new Date(t.kursbeginn).toLocaleDateString("de-CH", {
+                                      day: "2-digit",
+                                      month: "long",
+                                      year: "numeric",
+                                    })}
+                                    {t.plaetze_frei != null ? ` · ${t.plaetze_frei} Plätze frei` : ""}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (window.confirm("Diesen Termin löschen?"))
+                                        terminLoeschenMutation.mutate(t.id);
+                                    }}
+                                    className="text-xs font-semibold text-coral"
+                                  >
+                                    Löschen
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        })()}
+                        <form
+                          className="mt-4 flex flex-wrap items-end gap-3"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const f = new FormData(e.currentTarget);
+                            const kursbeginn = String(f.get("kursbeginn") ?? "");
+                            const plaetze = String(f.get("plaetze_frei") ?? "").trim();
+                            if (!kursbeginn) return;
+                            terminHinzufuegenMutation.mutate(
+                              {
+                                anbieter_id: a.id,
+                                kursbeginn,
+                                plaetze_frei: plaetze ? Number(plaetze) : undefined,
+                              },
+                              { onSuccess: () => e.currentTarget.reset() },
+                            );
+                          }}
+                        >
+                          <label className="text-xs font-semibold">
+                            Datum
+                            <input name="kursbeginn" type="date" required className={`mt-1 ${feld}`} />
+                          </label>
+                          <label className="text-xs font-semibold">
+                            Freie Plätze
+                            <input
+                              name="plaetze_frei"
+                              type="number"
+                              min="0"
+                              step="1"
+                              className={`mt-1 w-28 ${feld}`}
+                            />
+                          </label>
+                          <button
+                            type="submit"
+                            disabled={terminHinzufuegenMutation.isPending}
+                            className="rounded-full bg-teal px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                          >
+                            Hinzufügen
+                          </button>
+                        </form>
+                      </div>
                     ) : null}
                   </div>
                 </div>

@@ -32,6 +32,12 @@ export const adminUebersicht = createServerFn({ method: "GET" })
       .order("zeitpunkt", { ascending: false });
     if (klickError) throw klickError;
 
+    const { data: termine, error: termineError } = await context.supabase
+      .from("kurstermine")
+      .select("id, anbieter_id, kursbeginn, plaetze_frei")
+      .order("kursbeginn");
+    if (termineError) throw termineError;
+
     const namen = new Map((anbieter ?? []).map((a: any) => [a.id, a.name as string]));
     const gruppen = new Map<
       string,
@@ -58,8 +64,41 @@ export const adminUebersicht = createServerFn({ method: "GET" })
     return {
       anbieter: (anbieter ?? []) as any[],
       leads,
+      termine: (termine ?? []) as any[],
       kennzahlen: { gesamt, aktiv, inaktiv: gesamt - aktiv, leadsGesamt: klicks?.length ?? 0 },
     };
+  });
+
+export const adminFuegeTerminHinzu = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        anbieter_id: z.string().uuid(),
+        kursbeginn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        plaetze_frei: z.number().int().nonnegative().max(999).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase.from("kurstermine").insert({
+      anbieter_id: data.anbieter_id,
+      kursbeginn: data.kursbeginn,
+      plaetze_frei: data.plaetze_frei ?? null,
+    });
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
+export const adminLoescheTermin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase.from("kurstermine").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true as const };
   });
 
 export const setzeAnbieterStatus = createServerFn({ method: "POST" })
