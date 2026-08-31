@@ -45,6 +45,11 @@ const KURSTYP_LABEL: Record<string, string> = {
   beide: "VKU + Nothelfer",
 };
 
+const KANTON_GEO_NAME: Record<string, string> = {
+  Waadt: "Vaud",
+  Tessin: "Ticino",
+};
+
 const RADIEN = [5, 10, 20, 50];
 
 function useDebounced<T>(wert: T, ms: number) {
@@ -57,14 +62,6 @@ function useDebounced<T>(wert: T, ms: number) {
 }
 
 const QUICK_REGIONS = ["Zürich", "Bern", "Basel", "Genf"];
-
-// geo.admin.ch kennt einige Kantone nur unter ihrem französischen/italienischen
-// Namen als "kantone"-Eintrag — bei den deutschen Namen liefert die Suche sonst
-// einen zufälligen, falschen Ortstreffer (z. B. "Waadt" → Dorf Etoy statt Kanton VD).
-const GEOCODE_UEBERSCHREIBUNG: Record<string, string> = {
-  Waadt: "Vaud",
-  Tessin: "Ticino",
-};
 
 const CHIP_STYLES = [
   "bg-bubble text-coral hover:bg-coral/20",
@@ -89,7 +86,7 @@ function Index() {
     queryFn: () =>
       suche({
         data: {
-          ort: (GEOCODE_UEBERSCHREIBUNG[debouncedQuery] ?? debouncedQuery) || undefined,
+          ort: (KANTON_GEO_NAME[debouncedQuery] ?? debouncedQuery) || undefined,
           lat: geo?.lat,
           lng: geo?.lng,
           radiusKm: radius,
@@ -130,7 +127,7 @@ function Index() {
   };
 
   const headingRegion = punkt
-    ? `${GEOCODE_UEBERSCHREIBUNG[query] ? query : punkt.label} (${radius} km)`
+    ? `${punkt.label} (${radius} km)`
     : query.trim().length > 0
       ? `«${query.trim()}»`
       : "der ganzen Schweiz";
@@ -529,9 +526,7 @@ function Index() {
         {/* Was ist der VKU? */}
         <section className="pb-20">
           <div className="rounded-[32px] bg-mint p-8 sm:p-10">
-            <h2 className="font-display text-2xl font-bold sm:text-3xl">
-              Was ist der VKU — und was der Nothelferkurs?
-            </h2>
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">Was ist der VKU — und was der Nothelferkurs?</h2>
             <div className="mt-4 grid gap-6 text-[15px] leading-relaxed text-foreground/80 md:grid-cols-2">
               <p>
                 Der Verkehrskundeunterricht (VKU) ist in der Schweiz obligatorisch, bevor du zur
