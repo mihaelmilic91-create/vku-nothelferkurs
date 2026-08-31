@@ -76,7 +76,8 @@ function AdminSeite() {
       setBearbeitet(null);
       void refetch();
     },
-    onError: () => setMeldung("Speichern fehlgeschlagen — bitte Eingaben prüfen (URLs mit https://)."),
+    onError: () =>
+      setMeldung("Speichern fehlgeschlagen — bitte Eingaben prüfen (URLs mit https://)."),
   });
   const loeschenMutation = useMutation({
     mutationFn: (id: string) => loeschenFn({ data: { id } }),
@@ -90,9 +91,7 @@ function AdminSeite() {
     return (
       <SiteShell>
         <PageHeader eyebrow="Intern" title="Kein Zugriff" />
-        <p className="text-muted-foreground">
-          Dieses Konto ist nicht als Admin freigeschaltet.
-        </p>
+        <p className="text-muted-foreground">Dieses Konto ist nicht als Admin freigeschaltet.</p>
       </SiteShell>
     );
   }
@@ -122,35 +121,31 @@ function AdminSeite() {
 
           <section className="space-y-4">
             <h2 className="font-display text-2xl font-bold">Anbieter</h2>
-            {(() => {
-              const anbieterListe = data.anbieter as Anbieter[];
-              const nachId = new Map(anbieterListe.map((x) => [x.id, x]));
-              return anbieterListe.map((a) => {
-                const original = a.ersetzt_anbieter_id ? nachId.get(a.ersetzt_anbieter_id) : null;
-                return (
-                  <div key={a.id} className="rounded-3xl bg-card p-5 shadow-sm">
-                    {original ? (
-                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-sun/25 px-4 py-2.5 text-xs font-medium">
-                        <span>
-                          🔁 Beansprucht den recherchierten Eintrag «{original.name}» (
-                          {original.status})
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                `Alten Eintrag «${original.name}» jetzt löschen (Duplikat bereinigen)?`,
-                              )
-                            )
-                              loeschenMutation.mutate(original.id);
-                          }}
-                          className="rounded-full bg-card px-3 py-1 font-semibold text-coral"
-                        >
-                          Alten Eintrag löschen
-                        </button>
-                      </div>
-                    ) : null}
+            {(data.anbieter as Anbieter[]).map((a) => {
+              const original = a.ersetzt_anbieter_id
+                ? (data.anbieter as Anbieter[]).find((o) => o.id === a.ersetzt_anbieter_id)
+                : undefined;
+              return (
+                <div key={a.id} className="space-y-2">
+                  {original ? (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sun/25 px-4 py-3 text-sm">
+                      <span>
+                        🔁 Beansprucht den recherchierten Eintrag «{original.name}» (
+                        {original.status})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Alten Eintrag «${original.name}» wirklich löschen?`))
+                            loeschenMutation.mutate(original.id);
+                        }}
+                        className="rounded-full bg-coral px-4 py-1.5 text-xs font-semibold text-primary-foreground"
+                      >
+                        Alten Eintrag löschen
+                      </button>
+                    </div>
+                  ) : null}
+                  <div className="rounded-3xl bg-card p-5 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="font-display text-lg font-semibold">{a.name}</div>
@@ -158,137 +153,152 @@ function AdminSeite() {
                           {[a.plz, a.ort, a.kanton].filter(Boolean).join(" ")} · {a.kurstyp}
                         </div>
                       </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        a.status === "aktiv"
-                          ? "bg-mint text-teal"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {a.status}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        statusMutation.mutate({
-                          id: a.id,
-                          status: a.status === "aktiv" ? "inaktiv" : "aktiv",
-                        })
-                      }
-                      className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-primary-foreground"
-                    >
-                      {a.status === "aktiv" ? "Deaktivieren" : "Freischalten"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBearbeitet(bearbeitet === a.id ? null : a.id)}
-                      className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold"
-                    >
-                      {bearbeitet === a.id ? "Schliessen" : "Bearbeiten"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (window.confirm(`${a.name} wirklich löschen?`))
-                          loeschenMutation.mutate(a.id);
-                      }}
-                      className="rounded-full bg-coral px-4 py-1.5 text-xs font-semibold text-primary-foreground"
-                    >
-                      Löschen
-                    </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            a.status === "aktiv"
+                              ? "bg-mint text-teal"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {a.status}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            statusMutation.mutate({
+                              id: a.id,
+                              status: a.status === "aktiv" ? "inaktiv" : "aktiv",
+                            })
+                          }
+                          className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-primary-foreground"
+                        >
+                          {a.status === "aktiv" ? "Deaktivieren" : "Freischalten"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBearbeitet(bearbeitet === a.id ? null : a.id)}
+                          className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold"
+                        >
+                          {bearbeitet === a.id ? "Schliessen" : "Bearbeiten"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`${a.name} wirklich löschen?`))
+                              loeschenMutation.mutate(a.id);
+                          }}
+                          className="rounded-full bg-coral px-4 py-1.5 text-xs font-semibold text-primary-foreground"
+                        >
+                          Löschen
+                        </button>
+                      </div>
+                    </div>
+
+                    {bearbeitet === a.id ? (
+                      <form
+                        className="mt-5 grid gap-3 sm:grid-cols-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const f = new FormData(e.currentTarget);
+                          const preis = String(f.get("preis_chf") ?? "").trim();
+                          speichernMutation.mutate({
+                            id: a.id,
+                            name: String(f.get("name") ?? ""),
+                            adresse: String(f.get("adresse") ?? ""),
+                            plz: String(f.get("plz") ?? ""),
+                            ort: String(f.get("ort") ?? ""),
+                            kanton: String(f.get("kanton") ?? ""),
+                            kurstyp: String(f.get("kurstyp") ?? "vku"),
+                            preis_chf: preis === "" ? null : Number(preis),
+                            termine_url: String(f.get("termine_url") ?? ""),
+                            website_url: String(f.get("website_url") ?? ""),
+                            kontakt_email: String(f.get("kontakt_email") ?? ""),
+                            kontakt_telefon: String(f.get("kontakt_telefon") ?? ""),
+                          });
+                        }}
+                      >
+                        <input
+                          className={feld}
+                          name="name"
+                          defaultValue={a.name}
+                          placeholder="Name"
+                        />
+                        <input
+                          className={feld}
+                          name="adresse"
+                          defaultValue={a.adresse ?? ""}
+                          placeholder="Adresse"
+                        />
+                        <input
+                          className={feld}
+                          name="plz"
+                          defaultValue={a.plz ?? ""}
+                          placeholder="PLZ"
+                        />
+                        <input
+                          className={feld}
+                          name="ort"
+                          defaultValue={a.ort ?? ""}
+                          placeholder="Ort"
+                        />
+                        <input
+                          className={feld}
+                          name="kanton"
+                          defaultValue={a.kanton ?? ""}
+                          placeholder="Kanton (z. B. ZH)"
+                        />
+                        <select className={feld} name="kurstyp" defaultValue={a.kurstyp}>
+                          <option value="vku">vku</option>
+                          <option value="nothelferkurs">nothelferkurs</option>
+                          <option value="beide">beide</option>
+                        </select>
+                        <input
+                          className={feld}
+                          name="preis_chf"
+                          type="number"
+                          step="1"
+                          defaultValue={a.preis_chf ?? ""}
+                          placeholder="Preis CHF"
+                        />
+                        <input
+                          className={feld}
+                          name="kontakt_email"
+                          defaultValue={a.kontakt_email ?? ""}
+                          placeholder="E-Mail"
+                        />
+                        <input
+                          className={feld}
+                          name="kontakt_telefon"
+                          defaultValue={a.kontakt_telefon ?? ""}
+                          placeholder="Telefon"
+                        />
+                        <input
+                          className={feld}
+                          name="website_url"
+                          defaultValue={a.website_url ?? ""}
+                          placeholder="https://website"
+                        />
+                        <input
+                          className={feld}
+                          name="termine_url"
+                          defaultValue={a.termine_url ?? ""}
+                          placeholder="https://termine"
+                        />
+                        <div className="sm:col-span-2">
+                          <button
+                            type="submit"
+                            className="rounded-full bg-coral px-5 py-2 font-display text-sm font-semibold text-primary-foreground"
+                          >
+                            Speichern
+                          </button>
+                        </div>
+                      </form>
+                    ) : null}
                   </div>
                 </div>
-
-                {bearbeitet === a.id ? (
-                  <form
-                    className="mt-5 grid gap-3 sm:grid-cols-2"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const f = new FormData(e.currentTarget);
-                      const preis = String(f.get("preis_chf") ?? "").trim();
-                      speichernMutation.mutate({
-                        id: a.id,
-                        name: String(f.get("name") ?? ""),
-                        adresse: String(f.get("adresse") ?? ""),
-                        plz: String(f.get("plz") ?? ""),
-                        ort: String(f.get("ort") ?? ""),
-                        kanton: String(f.get("kanton") ?? ""),
-                        kurstyp: String(f.get("kurstyp") ?? "vku"),
-                        preis_chf: preis === "" ? null : Number(preis),
-                        termine_url: String(f.get("termine_url") ?? ""),
-                        website_url: String(f.get("website_url") ?? ""),
-                        kontakt_email: String(f.get("kontakt_email") ?? ""),
-                        kontakt_telefon: String(f.get("kontakt_telefon") ?? ""),
-                      });
-                    }}
-                  >
-                    <input className={feld} name="name" defaultValue={a.name} placeholder="Name" />
-                    <input
-                      className={feld}
-                      name="adresse"
-                      defaultValue={a.adresse ?? ""}
-                      placeholder="Adresse"
-                    />
-                    <input className={feld} name="plz" defaultValue={a.plz ?? ""} placeholder="PLZ" />
-                    <input className={feld} name="ort" defaultValue={a.ort ?? ""} placeholder="Ort" />
-                    <input
-                      className={feld}
-                      name="kanton"
-                      defaultValue={a.kanton ?? ""}
-                      placeholder="Kanton (z. B. ZH)"
-                    />
-                    <select className={feld} name="kurstyp" defaultValue={a.kurstyp}>
-                      <option value="vku">vku</option>
-                      <option value="nothelferkurs">nothelferkurs</option>
-                      <option value="beide">beide</option>
-                    </select>
-                    <input
-                      className={feld}
-                      name="preis_chf"
-                      type="number"
-                      step="1"
-                      defaultValue={a.preis_chf ?? ""}
-                      placeholder="Preis CHF"
-                    />
-                    <input
-                      className={feld}
-                      name="kontakt_email"
-                      defaultValue={a.kontakt_email ?? ""}
-                      placeholder="E-Mail"
-                    />
-                    <input
-                      className={feld}
-                      name="kontakt_telefon"
-                      defaultValue={a.kontakt_telefon ?? ""}
-                      placeholder="Telefon"
-                    />
-                    <input
-                      className={feld}
-                      name="website_url"
-                      defaultValue={a.website_url ?? ""}
-                      placeholder="https://website"
-                    />
-                    <input
-                      className={feld}
-                      name="termine_url"
-                      defaultValue={a.termine_url ?? ""}
-                      placeholder="https://termine"
-                    />
-                    <div className="sm:col-span-2">
-                      <button
-                        type="submit"
-                        className="rounded-full bg-coral px-5 py-2 font-display text-sm font-semibold text-primary-foreground"
-                      >
-                        Speichern
-                      </button>
-                    </div>
-                  </form>
-                ) : null}
-                  </div>
-                );
-              });
-            })()}
+              );
+            })}
           </section>
 
           <section className="space-y-4">

@@ -106,7 +106,7 @@ function Partner() {
         title="Kursanbieter werden"
         lead="Trage deine Fahrschule, deinen Samariterverein oder deine Kursorganisation ein. Wir prüfen jeden Eintrag manuell und schalten ihn danach frei. Danach kannst du deine Angaben und deine Termine-Seite selbst verwalten."
       />
-      <p className="mb-6 max-w-2xl text-xs text-muted-foreground">
+      <p className="mb-6 max-w-3xl text-sm text-muted-foreground">
         Hinweis: VKU dürfen in der Schweiz nur anerkannte Fahrlehrer:innen bzw. Fahrschulen anbieten.
         Nothelferkurse können auch von anderen anerkannten Organisationen durchgeführt werden, z. B.
         Samaritervereinen, dem Roten Kreuz oder privaten Erste-Hilfe-Anbietern.

@@ -33,6 +33,7 @@ export type Database = {
         Row: {
           adresse: string | null
           created_at: string
+          ersetzt_anbieter_id: string | null
           id: string
           kanton: string | null
           kontakt_email: string | null
@@ -54,6 +55,7 @@ export type Database = {
         Insert: {
           adresse?: string | null
           created_at?: string
+          ersetzt_anbieter_id?: string | null
           id?: string
           kanton?: string | null
           kontakt_email?: string | null
@@ -75,6 +77,7 @@ export type Database = {
         Update: {
           adresse?: string | null
           created_at?: string
+          ersetzt_anbieter_id?: string | null
           id?: string
           kanton?: string | null
           kontakt_email?: string | null
@@ -94,6 +97,13 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "anbieter_ersetzt_anbieter_id_fkey"
+            columns: ["ersetzt_anbieter_id"]
+            isOneToOne: false
+            referencedRelation: "anbieter"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "anbieter_kanton_fkey"
             columns: ["kanton"]

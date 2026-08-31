@@ -58,7 +58,7 @@ function useDebounced<T>(wert: T, ms: number) {
 
 const QUICK_REGIONS = ["Zürich", "Bern", "Basel", "Luzern"];
 
-const REGION_CHIP_STYLE = "bg-mint text-teal hover:bg-teal/15";
+const CHIP_STYLE = "bg-mint text-teal hover:bg-teal/15";
 
 function Index() {
   const [query, setQuery] = useState("");
@@ -89,6 +89,7 @@ function Index() {
   });
 
 
+  const erstesLaden = isLoading && !data;
   const results = data?.treffer ?? [];
   const kantonAnzahl = new Set(results.map((a) => a.kanton).filter(Boolean)).size;
   const punkt = data?.punkt ?? null;
@@ -256,7 +257,7 @@ function Index() {
                   <button
                     key={region}
                     onClick={() => setQuery(region)}
-                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${REGION_CHIP_STYLE}`}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${CHIP_STYLE}`}
                   >
                     {region}
                   </button>
@@ -307,12 +308,12 @@ function Index() {
             </div>
             <div className="absolute -bottom-5 left-6 flex items-center gap-3 rounded-2xl bg-card px-4 py-3 shadow-[0_16px_36px_-16px_rgba(51,43,56,0.5)]">
               <div className="grid size-9 place-items-center rounded-full bg-mint font-display text-sm font-bold text-teal">
-                {isLoading && !data ? "…" : results.length}
+                {erstesLaden ? "…" : results.length}
               </div>
               <div className="leading-tight">
                 <div className="text-sm font-bold">Kursorte</div>
                 <div className="text-[11px] text-muted-foreground">
-                  {isLoading && !data
+                  {erstesLaden
                     ? "wird geladen …"
                     : `in ${kantonAnzahl} ${kantonAnzahl === 1 ? "Kanton" : "Kantonen"}`}
                 </div>
@@ -328,9 +329,8 @@ function Index() {
               Verfügbare Kurse in <span className="text-coral">{headingRegion}</span>
             </h2>
             <span className="text-sm font-semibold text-teal">
-              {isLoading && !data
-                ? "Suche läuft …"
-                : `${results.length} Anbieter gefunden${punkt ? ` · sortiert nach Distanz zu ${punkt.label}` : ""}`}
+              {erstesLaden ? "Suche läuft …" : `${results.length} Anbieter gefunden`}
+              {!erstesLaden && punkt ? ` · sortiert nach Distanz zu ${punkt.label}` : ""}
             </span>
           </div>
 
@@ -497,7 +497,7 @@ function Index() {
                     setQuery(k);
                     document.getElementById("anbieter")?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className={`rounded-full px-4 py-2.5 font-display text-sm font-semibold transition-colors ${REGION_CHIP_STYLE}`}
+                  className={`rounded-full px-4 py-2.5 font-display text-sm font-semibold transition-colors ${CHIP_STYLE}`}
                 >
                   {k}
                 </button>
