@@ -58,6 +58,14 @@ function useDebounced<T>(wert: T, ms: number) {
 
 const QUICK_REGIONS = ["Zürich", "Bern", "Basel", "Genf"];
 
+// geo.admin.ch kennt einige Kantone nur unter ihrem französischen/italienischen
+// Namen als "kantone"-Eintrag — bei den deutschen Namen liefert die Suche sonst
+// einen zufälligen, falschen Ortstreffer (z. B. "Waadt" → Dorf Etoy statt Kanton VD).
+const GEOCODE_UEBERSCHREIBUNG: Record<string, string> = {
+  Waadt: "Vaud",
+  Tessin: "Ticino",
+};
+
 const CHIP_STYLES = [
   "bg-bubble text-coral hover:bg-coral/20",
   "bg-mint text-teal hover:bg-teal/15",
@@ -81,7 +89,7 @@ function Index() {
     queryFn: () =>
       suche({
         data: {
-          ort: debouncedQuery || undefined,
+          ort: (GEOCODE_UEBERSCHREIBUNG[debouncedQuery] ?? debouncedQuery) || undefined,
           lat: geo?.lat,
           lng: geo?.lng,
           radiusKm: radius,
@@ -122,7 +130,7 @@ function Index() {
   };
 
   const headingRegion = punkt
-    ? `${punkt.label} (${radius} km)`
+    ? `${GEOCODE_UEBERSCHREIBUNG[query] ? query : punkt.label} (${radius} km)`
     : query.trim().length > 0
       ? `«${query.trim()}»`
       : "der ganzen Schweiz";
@@ -145,13 +153,19 @@ function Index() {
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-muted-foreground md:flex">
             <button
-              onClick={() => setKursart("vku")}
+              onClick={() => {
+                setKursart("vku");
+                document.getElementById("anbieter")?.scrollIntoView({ behavior: "smooth" });
+              }}
               className="transition-colors hover:text-coral"
             >
               VKU
             </button>
             <button
-              onClick={() => setKursart("nothelferkurs")}
+              onClick={() => {
+                setKursart("nothelferkurs");
+                document.getElementById("anbieter")?.scrollIntoView({ behavior: "smooth" });
+              }}
               className="transition-colors hover:text-coral"
             >
               Nothelferkurs
@@ -496,7 +510,7 @@ function Index() {
                 <button
                   key={k}
                   onClick={() => {
-                    setQuery(k === "Winterthur" ? "Winterthur" : k);
+                    setQuery(k);
                     document.getElementById("anbieter")?.scrollIntoView({ behavior: "smooth" });
                   }}
                   className={`rounded-full px-4 py-2.5 font-display text-sm font-semibold transition-colors ${
@@ -515,7 +529,9 @@ function Index() {
         {/* Was ist der VKU? */}
         <section className="pb-20">
           <div className="rounded-[32px] bg-mint p-8 sm:p-10">
-            <h2 className="font-display text-2xl font-bold sm:text-3xl">Was ist der VKU?</h2>
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">
+              Was ist der VKU — und was der Nothelferkurs?
+            </h2>
             <div className="mt-4 grid gap-6 text-[15px] leading-relaxed text-foreground/80 md:grid-cols-2">
               <p>
                 Der Verkehrskundeunterricht (VKU) ist in der Schweiz obligatorisch, bevor du zur
@@ -546,12 +562,12 @@ function Index() {
         <footer className="flex flex-col items-center justify-between gap-4 border-t border-border pb-10 pt-8 text-sm text-muted-foreground sm:flex-row">
           <div className="font-display font-bold text-foreground">vku-nothelferkurs.ch</div>
           <div className="flex gap-6">
-            <a href="#" className="transition-colors hover:text-coral">
+            <Link to="/impressum" className="transition-colors hover:text-coral">
               Impressum
-            </a>
-            <a href="#" className="transition-colors hover:text-coral">
+            </Link>
+            <Link to="/datenschutz" className="transition-colors hover:text-coral">
               Datenschutz
-            </a>
+            </Link>
             <a
               href="mailto:hallo@vku-nothelferkurs.ch"
               className="transition-colors hover:text-coral"
