@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+
+import { LogoMark } from "@/components/logo";
 import { BeanspruchenLink, UnbeanspruchtBadge, WebsiteLink } from "@/components/unbeansprucht";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,7 +9,6 @@ import { KANTONE } from "@/lib/anbieter";
 import { sucheAnbieterUmkreis } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
 import { TerminFilter, useTerminFilter } from "@/components/termin-filter";
-import { LogoMark } from "@/components/logo";
 import swissMap from "@/assets/swiss-map.jpg";
 
 export const Route = createFileRoute("/")({
