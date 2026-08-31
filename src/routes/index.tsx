@@ -95,6 +95,7 @@ function Index() {
 
 
   const results = data?.treffer ?? [];
+  const kantonAnzahl = new Set(results.map((a) => a.kanton).filter(Boolean)).size;
   const punkt = data?.punkt ?? null;
   const ausserhalbRadius = data?.ausserhalbRadius ?? false;
   const oevZeiten = useOevZeiten(
@@ -309,7 +310,9 @@ function Index() {
               </div>
               <div className="leading-tight">
                 <div className="text-sm font-bold">Kursorte</div>
-                <div className="text-[11px] text-muted-foreground">in 9 Kantonen</div>
+                <div className="text-[11px] text-muted-foreground">
+                  in {kantonAnzahl} {kantonAnzahl === 1 ? "Kanton" : "Kantonen"}
+                </div>
               </div>
             </div>
           </div>
