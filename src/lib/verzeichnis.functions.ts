@@ -17,6 +17,15 @@ function publicClient() {
 const ANBIETER_FELDER =
   "id, user_id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, preis_nothelferkurs_chf, bevorzugt, sprache, termine_url, website_url, kontakt_email, kontakt_telefon, created_at";
 
+// "bevorzugt" wirkt nur in der Nähe des Anbieters selbst (siehe distanz_km),
+// nicht landesweit — sonst würde z. B. ein bevorzugter St. Galler Anbieter
+// auch bei einer Suche in Luzern zuoberst erscheinen.
+const BEVORZUGT_RADIUS_KM = 10;
+
+function istLokalBevorzugt(a: { bevorzugt: boolean; distanz_km: number | null }) {
+  return a.bevorzugt && a.distanz_km != null && a.distanz_km <= BEVORZUGT_RADIUS_KM;
+}
+
 export const listKantone = createServerFn({ method: "GET" }).handler(async () => {
   const DEUTSCHSCHWEIZ = ["AG", "AI", "AR", "BE", "BL", "BS", "GL", "GR", "LU", "NW", "OW", "SG", "SH", "SO", "SZ", "TG", "UR", "ZG", "ZH"];
   const { data, error } = await publicClient()
@@ -180,8 +189,7 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
     const alle = (rows ?? [])
       .filter((r) => terminPasst(r.id, info, terminFilterAktiv))
       .map(oeffentlicherAnbieter)
-      .map((a) => ({ ...a, naechster_termin: info.erstTermin[a.id] ?? null }))
-      .sort((a, b) => Number(b.bevorzugt) - Number(a.bevorzugt));
+      .map((a) => ({ ...a, naechster_termin: info.erstTermin[a.id] ?? null }));
 
     if (!suche && !direkterPunkt) {
       return {
@@ -212,7 +220,7 @@ export const sucheAnbieterUmkreis = createServerFn({ method: "GET" })
       }))
       .sort(
         (a, b) =>
-          Number(b.bevorzugt) - Number(a.bevorzugt) ||
+          Number(istLokalBevorzugt(b)) - Number(istLokalBevorzugt(a)) ||
           (a.distanz_km ?? Infinity) - (b.distanz_km ?? Infinity),
       );
 
@@ -279,7 +287,7 @@ export const planeKombi = createServerFn({ method: "GET" })
       }))
       .sort(
         (a, b) =>
-          Number(b.bevorzugt) - Number(a.bevorzugt) ||
+          Number(istLokalBevorzugt(b)) - Number(istLokalBevorzugt(a)) ||
           (a.distanz_km ?? Infinity) - (b.distanz_km ?? Infinity),
       );
 
