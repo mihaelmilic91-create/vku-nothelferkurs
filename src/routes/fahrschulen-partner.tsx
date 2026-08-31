@@ -6,6 +6,7 @@ import { SiteShell, PageHeader } from "@/components/site-shell";
 import { listKantone, registriereAnbieter } from "@/lib/verzeichnis.functions";
 
 const suchSchema = z.object({
+  id: z.string().uuid().optional(),
   name: z.string().max(120).optional(),
   plz: z.string().max(10).optional(),
   ort: z.string().max(80).optional(),
@@ -76,6 +77,7 @@ function Partner() {
           website_url: String(form.get("website_url") ?? ""),
           kontakt_email: String(form.get("kontakt_email") ?? ""),
           kontakt_telefon: String(form.get("kontakt_telefon") ?? ""),
+          ersetzt_anbieter_id: vorgabe.id,
         },
       });
       setStatus("ok");

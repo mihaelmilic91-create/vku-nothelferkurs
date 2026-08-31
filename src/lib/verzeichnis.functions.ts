@@ -97,6 +97,7 @@ const registrierungSchema = z.object({
   website_url: z.string().url().max(300).optional().or(z.literal("")),
   kontakt_email: z.string().email().max(160),
   kontakt_telefon: z.string().max(40).optional().or(z.literal("")),
+  ersetzt_anbieter_id: z.string().uuid().optional(),
 });
 
 function slugify(value: string) {
@@ -134,6 +135,7 @@ export const registriereAnbieter = createServerFn({ method: "POST" })
       kontakt_email: data.kontakt_email,
       kontakt_telefon: data.kontakt_telefon || null,
       status: "inaktiv",
+      ersetzt_anbieter_id: data.ersetzt_anbieter_id ?? null,
     });
     if (error) throw error;
     return { ok: true as const };

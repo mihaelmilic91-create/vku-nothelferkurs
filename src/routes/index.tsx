@@ -58,12 +58,7 @@ function useDebounced<T>(wert: T, ms: number) {
 
 const QUICK_REGIONS = ["Zürich", "Bern", "Basel", "Luzern"];
 
-const CHIP_STYLES = [
-  "bg-bubble text-coral hover:bg-coral/20",
-  "bg-mint text-teal hover:bg-teal/15",
-  "bg-sun/25 text-foreground hover:bg-sun/40",
-  "bg-lav/25 text-foreground hover:bg-lav/40",
-];
+const REGION_CHIP_STYLE = "bg-mint text-teal hover:bg-teal/15";
 
 function Index() {
   const [query, setQuery] = useState("");
@@ -257,11 +252,11 @@ function Index() {
                 </p>
               ) : null}
               <div className="mt-3 flex flex-wrap gap-2 px-1">
-                {QUICK_REGIONS.map((region, i) => (
+                {QUICK_REGIONS.map((region) => (
                   <button
                     key={region}
                     onClick={() => setQuery(region)}
-                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${CHIP_STYLES[i % CHIP_STYLES.length]}`}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${REGION_CHIP_STYLE}`}
                   >
                     {region}
                   </button>
@@ -389,7 +384,7 @@ function Index() {
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {results.map((a, i) => (
+              {results.map((a) => (
                 <article
                   key={a.id}
                   className="rounded-[26px] bg-card p-6 shadow-[0_18px_40px_-24px_rgba(51,43,56,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_26px_50px_-24px_rgba(255,107,138,0.5)]"
@@ -495,18 +490,14 @@ function Index() {
               </span>
             </div>
             <div className="flex flex-wrap gap-2.5">
-              {KANTONE.map((k, i) => (
+              {KANTONE.map((k) => (
                 <button
                   key={k}
                   onClick={() => {
                     setQuery(k);
                     document.getElementById("anbieter")?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className={`rounded-full px-4 py-2.5 font-display text-sm font-semibold transition-colors ${
-                    i < 4
-                      ? CHIP_STYLES[i % CHIP_STYLES.length]
-                      : "bg-background text-muted-foreground hover:bg-background/80"
-                  }`}
+                  className={`rounded-full px-4 py-2.5 font-display text-sm font-semibold transition-colors ${REGION_CHIP_STYLE}`}
                 >
                   {k}
                 </button>

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 export type UnbeanspruchtDaten = {
+  id: string;
   name: string;
   plz?: string | null;
   ort?: string | null;
@@ -47,6 +48,7 @@ export function BeanspruchenLink({
     <Link
       to="/fahrschulen-partner"
       search={{
+        id: anbieter.id,
         name: anbieter.name,
         plz: anbieter.plz ?? undefined,
         ort: anbieter.ort ?? undefined,

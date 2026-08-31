@@ -47,6 +47,7 @@ type Anbieter = {
   kontakt_telefon: string | null;
   status: "aktiv" | "inaktiv";
   created_at: string;
+  ersetzt_anbieter_id: string | null;
 };
 
 function AdminSeite() {
@@ -121,15 +122,42 @@ function AdminSeite() {
 
           <section className="space-y-4">
             <h2 className="font-display text-2xl font-bold">Anbieter</h2>
-            {(data.anbieter as Anbieter[]).map((a) => (
-              <div key={a.id} className="rounded-3xl bg-card p-5 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="font-display text-lg font-semibold">{a.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {[a.plz, a.ort, a.kanton].filter(Boolean).join(" ")} · {a.kurstyp}
-                    </div>
-                  </div>
+            {(() => {
+              const anbieterListe = data.anbieter as Anbieter[];
+              const nachId = new Map(anbieterListe.map((x) => [x.id, x]));
+              return anbieterListe.map((a) => {
+                const original = a.ersetzt_anbieter_id ? nachId.get(a.ersetzt_anbieter_id) : null;
+                return (
+                  <div key={a.id} className="rounded-3xl bg-card p-5 shadow-sm">
+                    {original ? (
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-sun/25 px-4 py-2.5 text-xs font-medium">
+                        <span>
+                          🔁 Beansprucht den recherchierten Eintrag «{original.name}» (
+                          {original.status})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                `Alten Eintrag «${original.name}» jetzt löschen (Duplikat bereinigen)?`,
+                              )
+                            )
+                              loeschenMutation.mutate(original.id);
+                          }}
+                          className="rounded-full bg-card px-3 py-1 font-semibold text-coral"
+                        >
+                          Alten Eintrag löschen
+                        </button>
+                      </div>
+                    ) : null}
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="font-display text-lg font-semibold">{a.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {[a.plz, a.ort, a.kanton].filter(Boolean).join(" ")} · {a.kurstyp}
+                        </div>
+                      </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -257,8 +285,10 @@ function AdminSeite() {
                     </div>
                   </form>
                 ) : null}
-              </div>
-            ))}
+                  </div>
+                );
+              });
+            })()}
           </section>
 
           <section className="space-y-4">

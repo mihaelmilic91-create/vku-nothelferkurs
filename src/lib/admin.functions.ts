@@ -21,7 +21,7 @@ export const adminUebersicht = createServerFn({ method: "GET" })
     const { data: anbieter, error } = await context.supabase
       .from("anbieter")
       .select(
-        "id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, termine_url, website_url, kontakt_email, kontakt_telefon, status, created_at",
+        "id, name, slug, adresse, plz, ort, kanton, kurstyp, preis_chf, termine_url, website_url, kontakt_email, kontakt_telefon, status, created_at, ersetzt_anbieter_id",
       )
       .order("created_at", { ascending: false });
     if (error) throw error;
