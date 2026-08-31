@@ -44,10 +44,12 @@ export const adminUebersicht = createServerFn({ method: "GET" })
       { anbieter_id: string; name: string; anzahl: number; emails: string[]; letzter: string }
     >();
     for (const k of klicks ?? []) {
-      const key = k.anbieter_id as string;
+      const key = (k.anbieter_id as string | null) ?? "allgemein";
       const eintrag = gruppen.get(key) ?? {
         anbieter_id: key,
-        name: (namen.get(key) as string) ?? "Unbekannter Anbieter",
+        name: !k.anbieter_id
+          ? "Allgemein (Startseite)"
+          : ((namen.get(key) as string) ?? "Unbekannter Anbieter"),
         anzahl: 0,
         emails: [] as string[],
         letzter: k.zeitpunkt as string,

@@ -8,7 +8,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { KANTONE } from "@/lib/anbieter";
 import { sucheAnbieterUmkreis } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
-import { TerminFilter, useTerminFilter } from "@/components/termin-filter";
+import { useTerminFilter } from "@/components/termin-filter";
+import { GUTSCHEIN_CODE, GUTSCHEIN_TEXT, trackGutscheinKlick } from "@/lib/gutschein.functions";
 import swissMap from "@/assets/swiss-map.jpg";
 
 export const Route = createFileRoute("/")({
@@ -70,6 +71,13 @@ function Index() {
   const [geoStatus, setGeoStatus] = useState<"idle" | "laden" | "fehler">("idle");
   const termin = useTerminFilter();
 
+  const gutscheinTracken = useServerFn(trackGutscheinKlick);
+  const [gutscheinEmail, setGutscheinEmail] = useState("");
+  const [gutscheinStatus, setGutscheinStatus] = useState<"idle" | "sende" | "ok" | "fehler">(
+    "idle",
+  );
+  const [gutscheinKopiert, setGutscheinKopiert] = useState(false);
+
   const suche = useServerFn(sucheAnbieterUmkreis);
   const debouncedQuery = useDebounced(query.trim(), 350);
 
@@ -100,6 +108,19 @@ function Index() {
     punkt,
     results.map((a) => ({ id: a.id, lat: a.lat ?? null, lng: a.lng ?? null })),
   );
+
+  const gutscheinSichern = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const wert = gutscheinEmail.trim();
+    if (!wert) return;
+    setGutscheinStatus("sende");
+    try {
+      const res = await gutscheinTracken({ data: { email: wert } });
+      setGutscheinStatus(res.ok ? "ok" : "fehler");
+    } catch {
+      setGutscheinStatus("fehler");
+    }
+  };
 
   const standortVerwenden = () => {
     if (!("geolocation" in navigator)) {
@@ -289,9 +310,6 @@ function Index() {
                   ))}
                 </div>
               </div>
-
-              <TerminFilter {...termin} />
-
             </div>
           </div>
 
@@ -478,6 +496,82 @@ function Index() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* Gutschein-Banner */}
+        <section className="pb-20">
+          <div className="rounded-[32px] bg-mint p-8 sm:p-10">
+            <div className="grid gap-6 md:grid-cols-[1.2fr_1fr] md:items-center">
+              <div>
+                <h2 className="font-display text-2xl font-bold sm:text-3xl">
+                  Gratis Gutschein für deine Theorieprüfung 🎁
+                </h2>
+                <p className="mt-3 text-[15px] leading-relaxed text-foreground/80">{GUTSCHEIN_TEXT}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <span className="rounded-2xl bg-card px-5 py-3 font-display text-2xl font-bold tracking-widest text-teal">
+                    {GUTSCHEIN_CODE}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(GUTSCHEIN_CODE);
+                      setGutscheinKopiert(true);
+                    }}
+                    className="rounded-full bg-card px-4 py-2 font-display text-sm font-semibold text-foreground"
+                  >
+                    {gutscheinKopiert ? "Kopiert ✓" : "Code kopieren"}
+                  </button>
+                  <a
+                    href="https://onlinedrivecoach.ch"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full bg-foreground px-4 py-2 font-display text-sm font-semibold text-primary-foreground transition-colors hover:bg-coral"
+                  >
+                    Zu onlinedrivecoach.ch
+                  </a>
+                </div>
+              </div>
+
+              <form
+                onSubmit={gutscheinSichern}
+                className="rounded-[24px] bg-card p-5 shadow-[0_18px_40px_-24px_rgba(51,43,56,0.4)]"
+              >
+                <label htmlFor="gutschein-email-home" className="text-sm font-semibold">
+                  Optional: Code per E-Mail sichern
+                </label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Freiwillig — der Code oben gilt auch ohne E-Mail.
+                </p>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    id="gutschein-email-home"
+                    type="email"
+                    value={gutscheinEmail}
+                    onChange={(e) => setGutscheinEmail(e.target.value)}
+                    placeholder="name@beispiel.ch"
+                    className="flex-1 rounded-2xl bg-background/70 px-4 py-3 text-sm font-medium outline-none placeholder:text-muted-foreground/70 focus:bg-background"
+                  />
+                  <button
+                    type="submit"
+                    disabled={gutscheinStatus === "sende"}
+                    className="rounded-full bg-teal px-4 py-3 font-display text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                  >
+                    {gutscheinStatus === "sende" ? "…" : "Sichern"}
+                  </button>
+                </div>
+                {gutscheinStatus === "ok" ? (
+                  <p className="mt-2 text-xs font-medium text-teal">
+                    Gespeichert — wir schicken dir den Code an {gutscheinEmail.trim()}.
+                  </p>
+                ) : null}
+                {gutscheinStatus === "fehler" ? (
+                  <p className="mt-2 text-xs font-medium text-coral">
+                    Das hat nicht geklappt. Der Code oben bleibt gültig.
+                  </p>
+                ) : null}
+              </form>
+            </div>
+          </div>
         </section>
 
         {/* Regions strip */}

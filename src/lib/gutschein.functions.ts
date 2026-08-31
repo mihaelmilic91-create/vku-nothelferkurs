@@ -10,7 +10,7 @@ export const trackGutscheinKlick = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
       .object({
-        anbieter_id: z.string().uuid(),
+        anbieter_id: z.string().uuid().optional(),
         email: z.string().email().max(200).optional(),
       })
       .parse(data),
@@ -22,7 +22,7 @@ export const trackGutscheinKlick = createServerFn({ method: "POST" })
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
     const { error } = await supabase.from("gutschein_klicks").insert({
-      anbieter_id: data.anbieter_id,
+      anbieter_id: data.anbieter_id ?? null,
       ...(data.email ? { email: data.email } : {}),
     });
     if (error) return { ok: false as const };

@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { SiteShell, PageHeader } from "@/components/site-shell";
 import { planeKombi } from "@/lib/verzeichnis.functions";
 import { formatiereOevZeit, useOevZeiten } from "@/lib/oev-client";
-import { TerminFilter, useTerminFilter } from "@/components/termin-filter";
+import { useTerminFilter } from "@/components/termin-filter";
 
 export const Route = createFileRoute("/kombi-planer")({
   head: () => ({
@@ -271,9 +271,6 @@ function KombiPlaner() {
             ))}
           </div>
         </div>
-
-        <TerminFilter {...termin} />
-
       </div>
 
       {punkt ? (
