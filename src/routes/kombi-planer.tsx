@@ -197,8 +197,8 @@ function KombiPlaner() {
       />
 
       <div className="rounded-[28px] bg-card p-3 shadow-[0_24px_50px_-24px_rgba(51,43,56,0.45)]">
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="relative flex-1">
+        <div className="flex flex-col gap-3 md:flex-row">
+          <div className="relative min-w-0 flex-1">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
               📍
             </span>
@@ -209,8 +209,8 @@ function KombiPlaner() {
                 setQuery(e.target.value);
                 if (geo) setGeo(null);
               }}
-              placeholder="PLZ oder Ort — z. B. 8005 oder Zürich"
-              className="w-full rounded-2xl bg-background/70 py-3.5 pl-11 pr-4 text-base font-medium outline-none placeholder:text-muted-foreground/70 focus:bg-background"
+              placeholder="PLZ oder Ort"
+              className="w-full min-w-0 rounded-2xl bg-background/70 py-3.5 pl-11 pr-4 text-base font-medium outline-none placeholder:text-muted-foreground/70 focus:bg-background"
             />
           </div>
           <button
