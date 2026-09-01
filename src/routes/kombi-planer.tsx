@@ -51,9 +51,8 @@ type PlanerAnbieter = {
   plz: string | null;
   ort: string | null;
   kanton: string | null;
-  kurstyp: string;
   preis_chf: number | null;
-  preis_nothelferkurs_chf: number | null;
+  preis_nothelferkurs_chf?: number | null;
   distanz_km: number | null;
   beansprucht: boolean;
   website_url: string | null;
@@ -274,6 +273,7 @@ function KombiPlaner() {
             ))}
           </div>
         </div>
+
       </div>
 
       {punkt ? (

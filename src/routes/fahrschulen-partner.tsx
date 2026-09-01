@@ -61,7 +61,7 @@ function Partner() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const preis = String(form.get("preis_chf") ?? "").trim();
-    const preisNothelfer = String(form.get("preis_nothelferkurs_chf") ?? "").trim();
+    const preisNot = String(form.get("preis_nothelferkurs_chf") ?? "").trim();
     setStatus("senden");
     setFehler(null);
     try {
@@ -74,7 +74,7 @@ function Partner() {
           kanton: String(form.get("kanton") ?? ""),
           kurstyp: String(form.get("kurstyp") ?? "vku") as "vku" | "nothelferkurs" | "beide",
           preis_chf: preis ? Number(preis) : undefined,
-          preis_nothelferkurs_chf: preisNothelfer ? Number(preisNothelfer) : undefined,
+          preis_nothelferkurs_chf: preisNot ? Number(preisNot) : undefined,
           termine_url: String(form.get("termine_url") ?? ""),
           website_url: String(form.get("website_url") ?? ""),
           kontakt_email: String(form.get("kontakt_email") ?? ""),
@@ -164,10 +164,10 @@ function Partner() {
               ))}
             </select>
           </Feld>
-          <Feld label="Preis in CHF (bei «Beide»: VKU-Preis)">
+          <Feld label="Preis in CHF">
             <input name="preis_chf" type="number" min="0" step="1" className={feldKlasse} />
           </Feld>
-          <Feld label="Preis Nothelferkurs in CHF (nur falls «Beide»)">
+          <Feld label="Preis Nothelferkurs in CHF (nur falls Beide)">
             <input
               name="preis_nothelferkurs_chf"
               type="number"

@@ -32,6 +32,7 @@ export type Database = {
       anbieter: {
         Row: {
           adresse: string | null
+          bevorzugt: boolean
           created_at: string
           ersetzt_anbieter_id: string | null
           id: string
@@ -45,6 +46,7 @@ export type Database = {
           ort: string | null
           plz: string | null
           preis_chf: number | null
+          preis_nothelferkurs_chf: number | null
           slug: string
           sprache: string[]
           status: Database["public"]["Enums"]["anbieter_status"]
@@ -54,6 +56,7 @@ export type Database = {
         }
         Insert: {
           adresse?: string | null
+          bevorzugt?: boolean
           created_at?: string
           ersetzt_anbieter_id?: string | null
           id?: string
@@ -67,6 +70,7 @@ export type Database = {
           ort?: string | null
           plz?: string | null
           preis_chf?: number | null
+          preis_nothelferkurs_chf?: number | null
           slug: string
           sprache?: string[]
           status?: Database["public"]["Enums"]["anbieter_status"]
@@ -76,6 +80,7 @@ export type Database = {
         }
         Update: {
           adresse?: string | null
+          bevorzugt?: boolean
           created_at?: string
           ersetzt_anbieter_id?: string | null
           id?: string
@@ -89,6 +94,7 @@ export type Database = {
           ort?: string | null
           plz?: string | null
           preis_chf?: number | null
+          preis_nothelferkurs_chf?: number | null
           slug?: string
           sprache?: string[]
           status?: Database["public"]["Enums"]["anbieter_status"]
@@ -115,19 +121,19 @@ export type Database = {
       }
       gutschein_klicks: {
         Row: {
-          anbieter_id: string
+          anbieter_id: string | null
           email: string | null
           id: string
           zeitpunkt: string
         }
         Insert: {
-          anbieter_id: string
+          anbieter_id?: string | null
           email?: string | null
           id?: string
           zeitpunkt?: string
         }
         Update: {
-          anbieter_id?: string
+          anbieter_id?: string | null
           email?: string | null
           id?: string
           zeitpunkt?: string

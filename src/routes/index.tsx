@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Car } from "lucide-react";
 
 import { LogoMark } from "@/components/logo";
 import { BeanspruchenLink, UnbeanspruchtBadge, WebsiteLink } from "@/components/unbeansprucht";
@@ -36,6 +37,110 @@ export const Route = createFileRoute("/")({
 
 type KursartFilter = "alle" | "vku" | "nothelferkurs";
 
+function GutscheinBanner() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "sende" | "ok" | "fehler">("idle");
+  const [copied, setCopied] = useState(false);
+  const track = useServerFn(trackGutscheinKlick);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(GUTSCHEIN_CODE);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const wert = email.trim();
+    if (!wert) return;
+    setStatus("sende");
+    try {
+      const res = await track({ data: { email: wert } });
+      setStatus(res.ok ? "ok" : "fehler");
+    } catch {
+      setStatus("fehler");
+    }
+  };
+
+  return (
+    <section className="pb-10">
+      <div className="rounded-[32px] bg-mint p-8 sm:p-10">
+        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">
+              CHF 10.- Gutschein für deine praktische Autoprüfung{" "}
+              <Car
+                className="inline-block size-7 align-[-0.15em] text-coral sm:size-8"
+                strokeWidth={2.5}
+              />
+            </h2>
+            <p className="mt-3 text-[15px] leading-relaxed text-foreground/80">
+              {GUTSCHEIN_TEXT}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <span className="rounded-2xl bg-card px-5 py-3 font-display text-3xl font-bold tracking-wide text-foreground">
+                {GUTSCHEIN_CODE}
+              </span>
+              <button
+                type="button"
+                onClick={copy}
+                className="rounded-full bg-card px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-background"
+              >
+                {copied ? "Kopiert ✓" : "Code kopieren"}
+              </button>
+            </div>
+            <a
+              href="https://onlinedrivecoach.ch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal underline hover:text-foreground"
+            >
+              Zu onlinedrivecoach.ch →
+            </a>
+          </div>
+          <div className="rounded-2xl bg-card p-5">
+            <h3 className="font-display text-sm font-bold">Code per E-Mail sichern</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Freiwillig — der Code oben gilt auch ohne E-Mail.
+            </p>
+            {status === "ok" ? (
+              <p className="mt-3 text-sm font-medium text-teal">
+                Gespeichert — wir schicken dir den Code an {email.trim()}.
+              </p>
+            ) : (
+              <form onSubmit={submit} className="mt-3 flex flex-col gap-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="deine@email.ch"
+                  className="w-full rounded-xl bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/70 focus:bg-background"
+                />
+                <button
+                  type="submit"
+                  disabled={status === "sende"}
+                  className="rounded-xl bg-coral px-4 py-3 font-display text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+                >
+                  {status === "sende" ? "…" : "Gutschein sichern"}
+                </button>
+                {status === "fehler" ? (
+                  <p className="text-xs font-medium text-coral">
+                    Das hat nicht geklappt. Der Code oben bleibt gültig.
+                  </p>
+                ) : null}
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const KURSART_FILTERS: Array<{ wert: KursartFilter; label: string }> = [
   { wert: "alle", label: "Alle" },
   { wert: "vku", label: "VKU" },
@@ -71,13 +176,6 @@ function Index() {
   const [geoStatus, setGeoStatus] = useState<"idle" | "laden" | "fehler">("idle");
   const termin = useTerminFilter();
 
-  const gutscheinTracken = useServerFn(trackGutscheinKlick);
-  const [gutscheinEmail, setGutscheinEmail] = useState("");
-  const [gutscheinStatus, setGutscheinStatus] = useState<"idle" | "sende" | "ok" | "fehler">(
-    "idle",
-  );
-  const [gutscheinKopiert, setGutscheinKopiert] = useState(false);
-
   const suche = useServerFn(sucheAnbieterUmkreis);
   const debouncedQuery = useDebounced(query.trim(), 350);
 
@@ -108,19 +206,6 @@ function Index() {
     punkt,
     results.map((a) => ({ id: a.id, lat: a.lat ?? null, lng: a.lng ?? null })),
   );
-
-  const gutscheinSichern = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const wert = gutscheinEmail.trim();
-    if (!wert) return;
-    setGutscheinStatus("sende");
-    try {
-      const res = await gutscheinTracken({ data: { email: wert } });
-      setGutscheinStatus(res.ok ? "ok" : "fehler");
-    } catch {
-      setGutscheinStatus("fehler");
-    }
-  };
 
   const standortVerwenden = () => {
     if (!("geolocation" in navigator)) {
@@ -190,7 +275,7 @@ function Index() {
             to="/fahrschulen-partner"
             className="rounded-full bg-card px-5 py-2.5 font-display text-sm font-semibold text-foreground shadow-[0_6px_16px_-8px_rgba(51,43,56,0.4)] transition-transform hover:-translate-y-0.5"
           >
-            Anbieter eintragen
+            Für Kursanbieter
           </Link>
         </header>
 
@@ -498,81 +583,7 @@ function Index() {
           )}
         </section>
 
-        {/* Gutschein-Banner */}
-        <section className="pb-20">
-          <div className="rounded-[32px] bg-mint p-8 sm:p-10">
-            <div className="grid gap-6 md:grid-cols-[1.2fr_1fr] md:items-center">
-              <div>
-                <h2 className="font-display text-2xl font-bold sm:text-3xl">
-                  Gratis Gutschein für deine praktische Prüfung 🎁
-                </h2>
-                <p className="mt-3 text-[15px] leading-relaxed text-foreground/80">{GUTSCHEIN_TEXT}</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <span className="rounded-2xl bg-card px-5 py-3 font-display text-2xl font-bold tracking-widest text-teal">
-                    {GUTSCHEIN_CODE}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(GUTSCHEIN_CODE);
-                      setGutscheinKopiert(true);
-                    }}
-                    className="rounded-full bg-card px-4 py-2 font-display text-sm font-semibold text-foreground"
-                  >
-                    {gutscheinKopiert ? "Kopiert ✓" : "Code kopieren"}
-                  </button>
-                  <a
-                    href="https://onlinedrivecoach.ch"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full bg-foreground px-4 py-2 font-display text-sm font-semibold text-primary-foreground transition-colors hover:bg-coral"
-                  >
-                    Zu onlinedrivecoach.ch
-                  </a>
-                </div>
-              </div>
-
-              <form
-                onSubmit={gutscheinSichern}
-                className="rounded-[24px] bg-card p-5 shadow-[0_18px_40px_-24px_rgba(51,43,56,0.4)]"
-              >
-                <label htmlFor="gutschein-email-home" className="text-sm font-semibold">
-                  Optional: Code per E-Mail sichern
-                </label>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Freiwillig — der Code oben gilt auch ohne E-Mail.
-                </p>
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  <input
-                    id="gutschein-email-home"
-                    type="email"
-                    value={gutscheinEmail}
-                    onChange={(e) => setGutscheinEmail(e.target.value)}
-                    placeholder="name@beispiel.ch"
-                    className="flex-1 rounded-2xl bg-background/70 px-4 py-3 text-sm font-medium outline-none placeholder:text-muted-foreground/70 focus:bg-background"
-                  />
-                  <button
-                    type="submit"
-                    disabled={gutscheinStatus === "sende"}
-                    className="rounded-full bg-teal px-4 py-3 font-display text-sm font-semibold text-primary-foreground disabled:opacity-60"
-                  >
-                    {gutscheinStatus === "sende" ? "…" : "Sichern"}
-                  </button>
-                </div>
-                {gutscheinStatus === "ok" ? (
-                  <p className="mt-2 text-xs font-medium text-teal">
-                    Gespeichert — wir schicken dir den Code an {gutscheinEmail.trim()}.
-                  </p>
-                ) : null}
-                {gutscheinStatus === "fehler" ? (
-                  <p className="mt-2 text-xs font-medium text-coral">
-                    Das hat nicht geklappt. Der Code oben bleibt gültig.
-                  </p>
-                ) : null}
-              </form>
-            </div>
-          </div>
-        </section>
+        <GutscheinBanner />
 
         {/* Regions strip */}
         <section className="pb-20">

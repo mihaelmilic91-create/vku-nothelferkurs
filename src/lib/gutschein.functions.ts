@@ -4,8 +4,7 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 export const GUTSCHEIN_CODE = "VKU10";
-export const GUTSCHEIN_TEXT =
-  "CHF 10 Rabatt auf deine Vorbereitung zur praktischen Fahrprüfung auf onlinedrivecoach.ch";
+export const GUTSCHEIN_TEXT = "CHF 10 Rabatt auf deine Vorbereitung zur praktischen Fahrprüfung auf onlinedrivecoach.ch";
 
 export const trackGutscheinKlick = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
@@ -27,5 +26,16 @@ export const trackGutscheinKlick = createServerFn({ method: "POST" })
       ...(data.email ? { email: data.email } : {}),
     });
     if (error) return { ok: false as const };
+    if (data.email) {
+      try {
+        const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+        await sendTemplateEmail("gutschein-code", data.email, {
+          replyTo: "info@onlinedrivecoach.ch",
+          idempotencyKey: `gutschein-code-${data.email.toLowerCase()}`,
+        });
+      } catch (err) {
+        console.error("Gutschein-E-Mail konnte nicht gesendet werden", err);
+      }
+    }
     return { ok: true as const };
   });

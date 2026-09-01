@@ -58,7 +58,6 @@ export const meineTermine = createServerFn({ method: "GET" })
       .maybeSingle();
     if (anbieterError) throw anbieterError;
     if (!anbieter) return [];
-
     const { data, error } = await context.supabase
       .from("kurstermine")
       .select("id, kursbeginn, plaetze_frei")
@@ -86,7 +85,6 @@ export const fuegeTerminHinzu = createServerFn({ method: "POST" })
       .maybeSingle();
     if (anbieterError) throw anbieterError;
     if (!anbieter) throw new Error("Kein Anbieter für dieses Konto gefunden.");
-
     const { error } = await context.supabase.from("kurstermine").insert({
       anbieter_id: anbieter.id,
       kursbeginn: data.kursbeginn,

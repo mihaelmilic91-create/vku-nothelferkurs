@@ -55,7 +55,7 @@ type Anbieter = {
   ersetzt_anbieter_id: string | null;
 };
 
-type Termin = {
+type Kurstermin = {
   id: string;
   anbieter_id: string;
   kursbeginn: string;
@@ -67,6 +67,7 @@ function AdminSeite() {
   const statusFn = useServerFn(setzeAnbieterStatus);
   const speichernFn = useServerFn(adminAktualisiereAnbieter);
   const loeschenFn = useServerFn(loescheAnbieter);
+  const bevorzugtFn = useServerFn(adminSetzeBevorzugt);
   const terminHinzufuegenFn = useServerFn(adminFuegeTerminHinzu);
   const terminLoeschenFn = useServerFn(adminLoescheTermin);
 
@@ -101,18 +102,18 @@ function AdminSeite() {
       void refetch();
     },
   });
+  const bevorzugtMutation = useMutation({
+    mutationFn: (v: { id: string; bevorzugt: boolean }) => bevorzugtFn({ data: v }),
+    onSuccess: () => void refetch(),
+  });
   const terminHinzufuegenMutation = useMutation({
-    mutationFn: (v: { anbieter_id: string; kursbeginn: string; plaetze_frei?: number }) =>
+    mutationFn: (v: { anbieter_id: string; kursbeginn: string; plaetze_frei?: number | undefined }) =>
       terminHinzufuegenFn({ data: v }),
     onSuccess: () => void refetch(),
+    onError: () => setMeldung("Termin konnte nicht gespeichert werden."),
   });
   const terminLoeschenMutation = useMutation({
     mutationFn: (id: string) => terminLoeschenFn({ data: { id } }),
-    onSuccess: () => void refetch(),
-  });
-  const bevorzugtFn = useServerFn(adminSetzeBevorzugt);
-  const bevorzugtMutation = useMutation({
-    mutationFn: (v: { id: string; bevorzugt: boolean }) => bevorzugtFn({ data: v }),
     onSuccess: () => void refetch(),
   });
 
@@ -183,6 +184,11 @@ function AdminSeite() {
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
+                        {a.bevorzugt ? (
+                          <span className="rounded-full bg-sun px-3 py-1 text-xs font-semibold">
+                            ⭐ Bevorzugt
+                          </span>
+                        ) : null}
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                             a.status === "aktiv"
@@ -192,11 +198,6 @@ function AdminSeite() {
                         >
                           {a.status}
                         </span>
-                        {a.bevorzugt ? (
-                          <span className="rounded-full bg-sun/40 px-3 py-1 text-xs font-semibold">
-                            ⭐ Bevorzugt
-                          </span>
-                        ) : null}
                         <button
                           type="button"
                           onClick={() =>
@@ -220,17 +221,17 @@ function AdminSeite() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setTermineOffen(termineOffen === a.id ? null : a.id)}
-                          className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold"
-                        >
-                          {termineOffen === a.id ? "Termine schliessen" : "Termine"}
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => setBearbeitet(bearbeitet === a.id ? null : a.id)}
                           className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold"
                         >
                           {bearbeitet === a.id ? "Schliessen" : "Bearbeiten"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTermineOffen(termineOffen === a.id ? null : a.id)}
+                          className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold"
+                        >
+                          {termineOffen === a.id ? "Termine schliessen" : "Termine"}
                         </button>
                         <button
                           type="button"
@@ -252,9 +253,7 @@ function AdminSeite() {
                           e.preventDefault();
                           const f = new FormData(e.currentTarget);
                           const preis = String(f.get("preis_chf") ?? "").trim();
-                          const preisNothelfer = String(
-                            f.get("preis_nothelferkurs_chf") ?? "",
-                          ).trim();
+                          const preisNot = String(f.get("preis_nothelferkurs_chf") ?? "").trim();
                           speichernMutation.mutate({
                             id: a.id,
                             name: String(f.get("name") ?? ""),
@@ -264,8 +263,7 @@ function AdminSeite() {
                             kanton: String(f.get("kanton") ?? ""),
                             kurstyp: String(f.get("kurstyp") ?? "vku"),
                             preis_chf: preis === "" ? null : Number(preis),
-                            preis_nothelferkurs_chf:
-                              preisNothelfer === "" ? null : Number(preisNothelfer),
+                            preis_nothelferkurs_chf: preisNot === "" ? null : Number(preisNot),
                             termine_url: String(f.get("termine_url") ?? ""),
                             website_url: String(f.get("website_url") ?? ""),
                             kontakt_email: String(f.get("kontakt_email") ?? ""),
@@ -314,7 +312,7 @@ function AdminSeite() {
                           type="number"
                           step="1"
                           defaultValue={a.preis_chf ?? ""}
-                          placeholder="Preis CHF (VKU, falls beide)"
+                          placeholder="Preis CHF"
                         />
                         <input
                           className={feld}
@@ -322,7 +320,7 @@ function AdminSeite() {
                           type="number"
                           step="1"
                           defaultValue={a.preis_nothelferkurs_chf ?? ""}
-                          placeholder="Preis Nothelferkurs CHF (nur falls beide)"
+                          placeholder="Preis Nothelferkurs in CHF (nur falls Beide)"
                         />
                         <input
                           className={feld}
@@ -360,57 +358,50 @@ function AdminSeite() {
                     ) : null}
 
                     {termineOffen === a.id ? (
-                      <div className="mt-5 border-t border-border pt-5">
-                        {(() => {
-                          const eigeneTermine = (data.termine as Termin[]).filter(
-                            (t) => t.anbieter_id === a.id,
-                          );
-                          return eigeneTermine.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                              Noch keine Termine erfasst.
-                            </p>
-                          ) : (
-                            <ul className="space-y-2">
-                              {eigeneTermine.map((t) => (
+                      <div className="mt-5 rounded-2xl bg-background p-4">
+                        <h3 className="font-display text-sm font-bold">Kurstermine</h3>
+                        {(data.termine as Kurstermin[]).filter((t) => t.anbieter_id === a.id)
+                          .length > 0 ? (
+                          <ul className="mt-3 space-y-2">
+                            {(data.termine as Kurstermin[])
+                              .filter((t) => t.anbieter_id === a.id)
+                              .map((t) => (
                                 <li
                                   key={t.id}
-                                  className="flex items-center justify-between gap-3 rounded-2xl bg-background px-4 py-2.5 text-sm"
+                                  className="flex items-center justify-between gap-3 rounded-xl bg-card px-3 py-2 text-sm"
                                 >
-                                  <span className="font-medium">
-                                    {new Date(t.kursbeginn).toLocaleDateString("de-CH", {
-                                      day: "2-digit",
-                                      month: "long",
-                                      year: "numeric",
-                                    })}
+                                  <span>
+                                    {new Date(t.kursbeginn).toLocaleDateString("de-CH")}
                                     {t.plaetze_frei != null ? ` · ${t.plaetze_frei} Plätze frei` : ""}
                                   </span>
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      if (window.confirm("Diesen Termin löschen?"))
-                                        terminLoeschenMutation.mutate(t.id);
+                                      if (window.confirm("Diesen Termin löschen?")) terminLoeschenMutation.mutate(t.id);
                                     }}
-                                    className="text-xs font-semibold text-coral"
+                                    disabled={terminLoeschenMutation.isPending}
+                                    className="rounded-full bg-coral px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-60"
                                   >
                                     Löschen
                                   </button>
                                 </li>
                               ))}
-                            </ul>
-                          );
-                        })()}
+                          </ul>
+                        ) : (
+                          <p className="mt-3 text-sm text-muted-foreground">
+                            Keine Termine erfasst.
+                          </p>
+                        )}
                         <form
-                          className="mt-4 flex flex-wrap items-end gap-3"
+                          className="mt-3 flex flex-wrap items-end gap-3"
                           onSubmit={(e) => {
                             e.preventDefault();
                             const f = new FormData(e.currentTarget);
-                            const kursbeginn = String(f.get("kursbeginn") ?? "");
                             const plaetze = String(f.get("plaetze_frei") ?? "").trim();
-                            if (!kursbeginn) return;
                             terminHinzufuegenMutation.mutate(
                               {
                                 anbieter_id: a.id,
-                                kursbeginn,
+                                kursbeginn: String(f.get("kursbeginn") ?? ""),
                                 plaetze_frei: plaetze ? Number(plaetze) : undefined,
                               },
                               { onSuccess: () => e.currentTarget.reset() },
@@ -419,22 +410,22 @@ function AdminSeite() {
                         >
                           <label className="text-xs font-semibold">
                             Datum
-                            <input name="kursbeginn" type="date" required className={`mt-1 ${feld}`} />
+                            <input className={`mt-1 ${feld}`} name="kursbeginn" type="date" required />
                           </label>
                           <label className="text-xs font-semibold">
-                            Freie Plätze
+                            Freie Plätze (optional)
                             <input
+                              className={`mt-1 ${feld}`}
                               name="plaetze_frei"
                               type="number"
                               min="0"
-                              step="1"
-                              className={`mt-1 w-28 ${feld}`}
+                              max="999"
                             />
                           </label>
                           <button
                             type="submit"
                             disabled={terminHinzufuegenMutation.isPending}
-                            className="rounded-full bg-teal px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                            className="rounded-full bg-coral px-4 py-2 font-display text-xs font-semibold text-primary-foreground disabled:opacity-60"
                           >
                             Hinzufügen
                           </button>

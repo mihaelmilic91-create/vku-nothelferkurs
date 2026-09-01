@@ -46,16 +46,6 @@ function MeinKonto() {
     queryFn: () => laden(),
   });
 
-  const {
-    data: termine,
-    isLoading: termineLaden_,
-    refetch: refetchTermine,
-  } = useQuery({
-    queryKey: ["meine-termine"],
-    queryFn: () => termineLaden(),
-    enabled: Boolean(data),
-  });
-
   const mutation = useMutation({
     mutationFn: (values: {
       id: string;
@@ -73,15 +63,22 @@ function MeinKonto() {
     onError: () => setMeldung("Speichern fehlgeschlagen — bitte URLs mit https:// angeben."),
   });
 
-  const terminHinzufuegenMutation = useMutation({
-    mutationFn: (values: { kursbeginn: string; plaetze_frei?: number }) =>
+  const { data: termine, refetch: termineNeuLaden } = useQuery({
+    queryKey: ["meine-termine"],
+    queryFn: () => termineLaden(),
+    enabled: Boolean(data),
+  });
+
+  const terminMutation = useMutation({
+    mutationFn: (values: { kursbeginn: string; plaetze_frei?: number | undefined }) =>
       terminHinzufuegen({ data: values }),
-    onSuccess: () => void refetchTermine(),
+    onSuccess: () => void termineNeuLaden(),
+    onError: () => setMeldung("Termin konnte nicht gespeichert werden."),
   });
 
   const terminLoeschenMutation = useMutation({
     mutationFn: (id: string) => terminLoeschen({ data: { id } }),
-    onSuccess: () => void refetchTermine(),
+    onSuccess: () => void termineNeuLaden(),
   });
 
   return (
@@ -95,13 +92,14 @@ function MeinKonto() {
           verknüpfen deinen Eintrag bei der Freischaltung.
         </div>
       ) : (
+        <>
         <form
           className="max-w-xl rounded-3xl bg-card p-6 shadow-[0_10px_30px_-22px_rgba(51,43,56,0.6)]"
           onSubmit={(event) => {
             event.preventDefault();
             const form = new FormData(event.currentTarget);
             const preis = String(form.get("preis_chf") ?? "").trim();
-            const preisNothelfer = String(form.get("preis_nothelferkurs_chf") ?? "").trim();
+            const preisNot = String(form.get("preis_nothelferkurs_chf") ?? "").trim();
             mutation.mutate({
               id: data.id,
               termine_url: String(form.get("termine_url") ?? ""),
@@ -109,7 +107,7 @@ function MeinKonto() {
               kontakt_email: String(form.get("kontakt_email") ?? ""),
               kontakt_telefon: String(form.get("kontakt_telefon") ?? ""),
               preis_chf: preis ? Number(preis) : undefined,
-              preis_nothelferkurs_chf: preisNothelfer ? Number(preisNothelfer) : undefined,
+              preis_nothelferkurs_chf: preisNot ? Number(preisNot) : undefined,
             });
           }}
         >
@@ -141,7 +139,7 @@ function MeinKonto() {
             <input name="kontakt_telefon" defaultValue={data.kontakt_telefon ?? ""} className={`mt-1.5 ${feldKlasse}`} />
           </label>
           <label className="mt-4 block text-sm font-semibold">
-            Preis in CHF{data.kurstyp === "beide" ? " (VKU)" : ""}
+            Preis in CHF
             <input
               name="preis_chf"
               type="number"
@@ -153,7 +151,7 @@ function MeinKonto() {
           </label>
           {data.kurstyp === "beide" ? (
             <label className="mt-4 block text-sm font-semibold">
-              Preis Nothelferkurs in CHF
+              Preis Nothelferkurs in CHF (nur falls Beide)
               <input
                 name="preis_nothelferkurs_chf"
                 type="number"
@@ -174,33 +172,22 @@ function MeinKonto() {
             Speichern
           </button>
         </form>
-      )}
 
-      {data ? (
         <div className="mt-8 max-w-xl rounded-3xl bg-card p-6 shadow-[0_10px_30px_-22px_rgba(51,43,56,0.6)]">
           <h2 className="font-display text-lg font-bold">Kurstermine</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Diese Termine erscheinen im Verzeichnis als "Nächster Kursbeginn" und werden für die
-            Datumsfilter genutzt.
+            Diese Termine erscheinen in der Suche als «Nächster Kursbeginn».
           </p>
 
-          {termineLaden_ ? (
-            <p className="mt-4 text-sm text-muted-foreground">Wird geladen …</p>
-          ) : !termine || termine.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">Noch keine Termine erfasst.</p>
-          ) : (
+          {termine && termine.length > 0 ? (
             <ul className="mt-4 space-y-2">
               {termine.map((t) => (
                 <li
                   key={t.id}
                   className="flex items-center justify-between gap-3 rounded-2xl bg-background px-4 py-2.5 text-sm"
                 >
-                  <span className="font-medium">
-                    {new Date(t.kursbeginn).toLocaleDateString("de-CH", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                  <span>
+                    {new Date(t.kursbeginn).toLocaleDateString("de-CH")}
                     {t.plaetze_frei != null ? ` · ${t.plaetze_frei} Plätze frei` : ""}
                   </span>
                   <button
@@ -208,13 +195,16 @@ function MeinKonto() {
                     onClick={() => {
                       if (window.confirm("Diesen Termin löschen?")) terminLoeschenMutation.mutate(t.id);
                     }}
-                    className="text-xs font-semibold text-coral"
+                    disabled={terminLoeschenMutation.isPending}
+                    className="rounded-full bg-coral px-3 py-1 text-xs font-semibold text-primary-foreground disabled:opacity-60"
                   >
                     Löschen
                   </button>
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="mt-4 text-sm text-muted-foreground">Noch keine Termine erfasst.</p>
           )}
 
           <form
@@ -222,12 +212,15 @@ function MeinKonto() {
             onSubmit={(event) => {
               event.preventDefault();
               const form = new FormData(event.currentTarget);
-              const kursbeginn = String(form.get("kursbeginn") ?? "");
               const plaetze = String(form.get("plaetze_frei") ?? "").trim();
-              if (!kursbeginn) return;
-              terminHinzufuegenMutation.mutate(
-                { kursbeginn, plaetze_frei: plaetze ? Number(plaetze) : undefined },
-                { onSuccess: () => event.currentTarget.reset() },
+              terminMutation.mutate(
+                {
+                  kursbeginn: String(form.get("kursbeginn") ?? ""),
+                  plaetze_frei: plaetze ? Number(plaetze) : undefined,
+                },
+                {
+                  onSuccess: () => event.currentTarget.reset(),
+                },
               );
             }}
           >
@@ -246,20 +239,21 @@ function MeinKonto() {
                 name="plaetze_frei"
                 type="number"
                 min="0"
-                step="1"
-                className={`mt-1.5 w-36 ${feldKlasse}`}
+                max="999"
+                className={`mt-1.5 ${feldKlasse}`}
               />
             </label>
             <button
               type="submit"
-              disabled={terminHinzufuegenMutation.isPending}
-              className="rounded-full bg-teal px-5 py-2.5 font-display text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              disabled={terminMutation.isPending}
+              className="rounded-full bg-coral px-5 py-2.5 font-display text-sm font-semibold text-primary-foreground disabled:opacity-60"
             >
               Termin hinzufügen
             </button>
           </form>
         </div>
-      ) : null}
+        </>
+      )}
 
       <button
         type="button"

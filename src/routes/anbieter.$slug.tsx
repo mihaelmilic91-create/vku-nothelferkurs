@@ -2,9 +2,9 @@ import { useState } from "react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { SiteShell, PageHeader } from "@/components/site-shell";
 import { getAnbieterBySlug } from "@/lib/verzeichnis.functions";
-import { preisAnzeige } from "@/lib/anbieter";
 import { GutscheinModal } from "@/components/gutschein-modal";
 import { BeanspruchenLink, UnbeanspruchtBadge, WebsiteLink } from "@/components/unbeansprucht";
+import { preisAnzeige } from "@/lib/anbieter";
 
 const KURSTYP_LABEL: Record<string, string> = {
   vku: "VKU",
@@ -161,7 +161,9 @@ function AnbieterDetail() {
           <div className="mt-3">
             <Zeile label="Kursart">{KURSTYP_LABEL[a.kurstyp] ?? a.kurstyp}</Zeile>
             <Zeile label="Kanton">{a.kanton ?? "—"}</Zeile>
-            <Zeile label="Preis">{preisAnzeige(a) ?? "auf Anfrage"}</Zeile>
+            <Zeile label="Preis">
+              {preisAnzeige(a) ?? "auf Anfrage"}
+            </Zeile>
             {a.beansprucht ? (
               <>
                 <Zeile label="Kurssprachen">{(a.sprache ?? []).join(", ") || "—"}</Zeile>

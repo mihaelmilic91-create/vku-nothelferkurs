@@ -44,12 +44,13 @@ export const adminUebersicht = createServerFn({ method: "GET" })
       { anbieter_id: string; name: string; anzahl: number; emails: string[]; letzter: string }
     >();
     for (const k of klicks ?? []) {
-      const key = (k.anbieter_id as string | null) ?? "allgemein";
+      const key = (k.anbieter_id ?? "allgemein") as string;
       const eintrag = gruppen.get(key) ?? {
         anbieter_id: key,
-        name: !k.anbieter_id
-          ? "Allgemein (Startseite)"
-          : ((namen.get(key) as string) ?? "Unbekannter Anbieter"),
+        name:
+          key === "allgemein"
+            ? "Allgemein (Startseite)"
+            : ((namen.get(key) as string) ?? "Unbekannter Anbieter"),
         anzahl: 0,
         emails: [] as string[],
         letzter: k.zeitpunkt as string,
@@ -65,42 +66,10 @@ export const adminUebersicht = createServerFn({ method: "GET" })
 
     return {
       anbieter: (anbieter ?? []) as any[],
-      leads,
       termine: (termine ?? []) as any[],
+      leads,
       kennzahlen: { gesamt, aktiv, inaktiv: gesamt - aktiv, leadsGesamt: klicks?.length ?? 0 },
     };
-  });
-
-export const adminFuegeTerminHinzu = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
-    z
-      .object({
-        anbieter_id: z.string().uuid(),
-        kursbeginn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        plaetze_frei: z.number().int().nonnegative().max(999).optional(),
-      })
-      .parse(data),
-  )
-  .handler(async ({ context, data }) => {
-    await requireAdmin(context);
-    const { error } = await context.supabase.from("kurstermine").insert({
-      anbieter_id: data.anbieter_id,
-      kursbeginn: data.kursbeginn,
-      plaetze_frei: data.plaetze_frei ?? null,
-    });
-    if (error) throw error;
-    return { ok: true as const };
-  });
-
-export const adminLoescheTermin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
-  .handler(async ({ context, data }) => {
-    await requireAdmin(context);
-    const { error } = await context.supabase.from("kurstermine").delete().eq("id", data.id);
-    if (error) throw error;
-    return { ok: true as const };
   });
 
 export const setzeAnbieterStatus = createServerFn({ method: "POST" })
@@ -183,6 +152,38 @@ export const loescheAnbieter = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await requireAdmin(context);
     const { error } = await context.supabase.from("anbieter").delete().eq("id", data.id);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
+export const adminFuegeTerminHinzu = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        anbieter_id: z.string().uuid(),
+        kursbeginn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        plaetze_frei: z.number().int().nonnegative().max(999).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase.from("kurstermine").insert({
+      anbieter_id: data.anbieter_id,
+      kursbeginn: data.kursbeginn,
+      plaetze_frei: data.plaetze_frei ?? null,
+    });
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
+export const adminLoescheTermin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase.from("kurstermine").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true as const };
   });
