@@ -583,7 +583,8 @@ function Index() {
           )}
         </section>
 
-        <GutscheinBanner />
+        {/* Gutschein-Banner temporär ausgeblendet (Anbieter-Akquise-Phase, ~Okt 2026 wieder einschalten) */}
+        {/* <GutscheinBanner /> */}
 
         {/* Regions strip */}
         <section className="pb-20">
