@@ -125,6 +125,9 @@ export const registriereAnbieter = createServerFn({ method: "POST" })
     const basis = slugify(data.name) || "anbieter";
     const slug = `${basis}-${Math.random().toString(36).slice(2, 7)}`;
 
+    const geoSuche = [data.adresse, data.plz, data.ort].filter(Boolean).join(" ").trim();
+    const punkt = geoSuche ? await geocodeSchweiz(geoSuche) : null;
+
     const { error } = await supabase.from("anbieter").insert({
       name: data.name,
       slug,
@@ -140,6 +143,9 @@ export const registriereAnbieter = createServerFn({ method: "POST" })
       kontakt_email: data.kontakt_email,
       kontakt_telefon: data.kontakt_telefon || null,
       ersetzt_anbieter_id: data.ersetzt_anbieter_id ?? null,
+      lat: punkt?.lat ?? null,
+      lng: punkt?.lng ?? null,
+      beansprucht: true,
       status: "inaktiv",
     });
     if (error) throw error;
