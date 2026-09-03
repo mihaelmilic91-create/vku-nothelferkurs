@@ -56,6 +56,7 @@ function Partner() {
   const registrieren = useServerFn(registriereAnbieter);
   const [status, setStatus] = useState<"idle" | "senden" | "ok" | "fehler">("idle");
   const [fehler, setFehler] = useState<string | null>(null);
+  const [kurstyp, setKurstyp] = useState<"vku" | "nothelferkurs" | "beide">("vku");
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -130,7 +131,12 @@ function Partner() {
             <input name="name" required defaultValue={vorgabe.name ?? ""} className={feldKlasse} />
           </Feld>
           <Feld label="Kursart *">
-            <select name="kurstyp" className={feldKlasse} defaultValue="vku">
+            <select
+              name="kurstyp"
+              className={feldKlasse}
+              value={kurstyp}
+              onChange={(e) => setKurstyp(e.target.value as typeof kurstyp)}
+            >
               <option value="vku">VKU</option>
               <option value="nothelferkurs">Nothelferkurs</option>
               <option value="beide">Beide</option>
@@ -164,18 +170,26 @@ function Partner() {
               ))}
             </select>
           </Feld>
-          <Feld label="Preis in CHF">
-            <input name="preis_chf" type="number" min="0" step="1" className={feldKlasse} />
-          </Feld>
-          <Feld label="Preis Nothelferkurs in CHF (nur falls Beide)">
-            <input
-              name="preis_nothelferkurs_chf"
-              type="number"
-              min="0"
-              step="1"
-              className={feldKlasse}
-            />
-          </Feld>
+          {kurstyp === "beide" ? (
+            <>
+              <Feld label="Preis VKU in CHF">
+                <input name="preis_chf" type="number" min="0" step="1" className={feldKlasse} />
+              </Feld>
+              <Feld label="Preis Nothelferkurs in CHF">
+                <input
+                  name="preis_nothelferkurs_chf"
+                  type="number"
+                  min="0"
+                  step="1"
+                  className={feldKlasse}
+                />
+              </Feld>
+            </>
+          ) : (
+            <Feld label={kurstyp === "vku" ? "Preis VKU in CHF" : "Preis Nothelferkurs in CHF"}>
+              <input name="preis_chf" type="number" min="0" step="1" className={feldKlasse} />
+            </Feld>
+          )}
           <Feld label="Termine-Seite (URL)">
             <input name="termine_url" type="url" placeholder="https://" className={feldKlasse} />
           </Feld>
