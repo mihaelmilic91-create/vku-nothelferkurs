@@ -1,5 +1,7 @@
 import type { ComponentType } from 'react'
 import { template as gutscheinCodeTemplate } from './gutschein-code'
+import { template as anbieterRegistrierungErhaltenTemplate } from './anbieter-registrierung-erhalten'
+import { template as anbieterFreigeschaltetTemplate } from './anbieter-freigeschaltet'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -16,4 +18,6 @@ export interface TemplateEntry {
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'gutschein-code': gutscheinCodeTemplate,
+  'anbieter-registrierung-erhalten': anbieterRegistrierungErhaltenTemplate,
+  'anbieter-freigeschaltet': anbieterFreigeschaltetTemplate,
 }

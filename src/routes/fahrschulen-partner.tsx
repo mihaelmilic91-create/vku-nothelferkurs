@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { useServerFn } from "@tanstack/react-start";
 import { SiteShell, PageHeader } from "@/components/site-shell";
 import { listKantone, registriereAnbieter } from "@/lib/verzeichnis.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 const suchSchema = z.object({
   id: z.string().uuid().optional(),
@@ -53,6 +54,7 @@ function Feld({ label, children }: { label: string; children: React.ReactNode })
 function Partner() {
   const kantone = Route.useLoaderData();
   const vorgabe = Route.useSearch();
+  const navigate = useNavigate();
   const registrieren = useServerFn(registriereAnbieter);
   const [status, setStatus] = useState<"idle" | "senden" | "ok" | "fehler">("idle");
   const [fehler, setFehler] = useState<string | null>(null);
@@ -63,6 +65,8 @@ function Partner() {
     const form = new FormData(event.currentTarget);
     const preis = String(form.get("preis_chf") ?? "").trim();
     const preisNot = String(form.get("preis_nothelferkurs_chf") ?? "").trim();
+    const email = String(form.get("kontakt_email") ?? "");
+    const passwort = String(form.get("passwort") ?? "");
     setStatus("senden");
     setFehler(null);
     try {
@@ -78,15 +82,27 @@ function Partner() {
           preis_nothelferkurs_chf: preisNot ? Number(preisNot) : undefined,
           termine_url: String(form.get("termine_url") ?? ""),
           website_url: String(form.get("website_url") ?? ""),
-          kontakt_email: String(form.get("kontakt_email") ?? ""),
+          kontakt_email: email,
           kontakt_telefon: String(form.get("kontakt_telefon") ?? ""),
           ersetzt_anbieter_id: vorgabe.id,
+          passwort,
         },
       });
       setStatus("ok");
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password: passwort,
+      });
+      if (!loginError) {
+        navigate({ to: "/mein-konto" });
+      }
     } catch (error) {
       console.error(error);
-      setFehler("Bitte prüfe deine Angaben (gültige E-Mail, vollständige URLs mit https://).");
+      const nachricht =
+        error instanceof Error && error.message.startsWith("NUTZERFEHLER: ")
+          ? error.message.slice("NUTZERFEHLER: ".length)
+          : "Bitte prüfe deine Angaben (gültige E-Mail, mind. 6 Zeichen Passwort, vollständige URLs mit https://).";
+      setFehler(nachricht);
       setStatus("fehler");
     }
   }
@@ -119,7 +135,13 @@ function Partner() {
         <div className="rounded-3xl bg-mint p-8 text-teal">
           <h2 className="font-display text-lg font-bold">Danke für deine Anmeldung!</h2>
           <p className="mt-2 text-sm">
-            Dein Eintrag ist erfasst und noch inaktiv. Wir prüfen ihn und melden uns per E-Mail.
+            Dein Eintrag ist erfasst und noch inaktiv. Wir prüfen ihn und melden uns per E-Mail,
+            sobald er freigeschaltet ist.
+          </p>
+          <p className="mt-2 text-sm">
+            Du wirst gleich automatisch eingeloggt. Falls das nicht klappt, kannst du dich
+            jederzeit unter <a href="/auth" className="font-semibold underline">/auth</a> mit
+            deiner E-Mail und dem gewählten Passwort anmelden.
           </p>
         </div>
       ) : (
@@ -202,6 +224,19 @@ function Partner() {
           <Feld label="Telefon">
             <input name="kontakt_telefon" className={feldKlasse} />
           </Feld>
+          <Feld label="Passwort für dein Konto *">
+            <input
+              name="passwort"
+              type="password"
+              required
+              minLength={6}
+              className={feldKlasse}
+            />
+          </Feld>
+          <p className="-mt-2 text-xs text-muted-foreground md:col-span-2">
+            Mit diesem Passwort kannst du dich nach dem Absenden sofort einloggen und deinen
+            Eintrag selbst verwalten.
+          </p>
 
           {fehler ? <p className="text-sm text-destructive md:col-span-2">{fehler}</p> : null}
 

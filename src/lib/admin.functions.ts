@@ -79,11 +79,26 @@ export const setzeAnbieterStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     await requireAdmin(context);
-    const { error } = await context.supabase
+    const { data: anbieter, error } = await context.supabase
       .from("anbieter")
       .update({ status: data.status })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .select("name, slug, kontakt_email")
+      .single();
     if (error) throw error;
+
+    if (data.status === "aktiv" && anbieter?.kontakt_email) {
+      try {
+        const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+        await sendTemplateEmail("anbieter-freigeschaltet", anbieter.kontakt_email, {
+          templateData: { name: anbieter.name, slug: anbieter.slug },
+          replyTo: "info@vku-nothelferkurs.ch",
+        });
+      } catch (err) {
+        console.error("Freischalt-E-Mail konnte nicht gesendet werden", err);
+      }
+    }
+
     return { ok: true as const };
   });
 

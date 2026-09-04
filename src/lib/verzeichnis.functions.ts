@@ -102,6 +102,7 @@ const registrierungSchema = z.object({
   kontakt_email: z.string().email().max(160),
   kontakt_telefon: z.string().max(40).optional().or(z.literal("")),
   ersetzt_anbieter_id: z.string().uuid().optional(),
+  passwort: z.string().min(6).max(72),
 });
 
 function slugify(value: string) {
@@ -121,14 +122,31 @@ function slugify(value: string) {
 export const registriereAnbieter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => registrierungSchema.parse(data))
   .handler(async ({ data }) => {
-    const supabase = publicClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const basis = slugify(data.name) || "anbieter";
     const slug = `${basis}-${Math.random().toString(36).slice(2, 7)}`;
 
     const geoSuche = [data.adresse, data.plz, data.ort].filter(Boolean).join(" ").trim();
     const punkt = geoSuche ? await geocodeSchweiz(geoSuche) : null;
 
-    const { error } = await supabase.from("anbieter").insert({
+    // Legt gleichzeitig mit dem Eintrag ein Login-Konto an und verknüpft es sofort
+    // (user_id), damit der Anbieter seinen Eintrag danach selbst verwalten kann.
+    const { data: neuerNutzer, error: nutzerError } = await supabaseAdmin.auth.admin.createUser({
+      email: data.kontakt_email,
+      password: data.passwort,
+      email_confirm: true,
+    });
+    if (nutzerError) {
+      if (/already|exists|registered/i.test(nutzerError.message)) {
+        throw new Error(
+          "NUTZERFEHLER: Für diese E-Mail-Adresse existiert bereits ein Konto. Bitte melde dich stattdessen ein oder nutze eine andere E-Mail-Adresse.",
+        );
+      }
+      throw nutzerError;
+    }
+
+    const { error } = await supabaseAdmin.from("anbieter").insert({
+      user_id: neuerNutzer.user.id,
       name: data.name,
       slug,
       adresse: data.adresse || null,
@@ -148,7 +166,21 @@ export const registriereAnbieter = createServerFn({ method: "POST" })
       beansprucht: true,
       status: "inaktiv",
     });
-    if (error) throw error;
+    if (error) {
+      await supabaseAdmin.auth.admin.deleteUser(neuerNutzer.user.id).catch(() => {});
+      throw error;
+    }
+
+    try {
+      const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+      await sendTemplateEmail("anbieter-registrierung-erhalten", data.kontakt_email, {
+        templateData: { name: data.name },
+        replyTo: "info@vku-nothelferkurs.ch",
+      });
+    } catch (err) {
+      console.error("Registrierungs-E-Mail konnte nicht gesendet werden", err);
+    }
+
     return { ok: true as const };
   });
 
