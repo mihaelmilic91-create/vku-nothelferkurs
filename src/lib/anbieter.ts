@@ -8,7 +8,9 @@ export function preisAnzeige(a: {
   if (a.kurstyp === "beide" && a.preis_chf != null && a.preis_nothelferkurs_chf != null) {
     return `VKU CHF ${a.preis_chf} · Nothelferkurs CHF ${a.preis_nothelferkurs_chf}`;
   }
-  return a.preis_chf != null ? `CHF ${a.preis_chf}` : null;
+  if (a.preis_chf == null) return null;
+  const label = a.kurstyp === "nothelferkurs" ? "Nothelferkurs" : "VKU";
+  return `${label} CHF ${a.preis_chf}`;
 }
 
 export interface Anbieter {
