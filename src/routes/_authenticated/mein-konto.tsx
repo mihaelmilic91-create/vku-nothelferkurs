@@ -178,6 +178,14 @@ function MeinKonto() {
           <p className="mt-1 text-sm text-muted-foreground">
             Diese Termine erscheinen in der Suche als «Nächster Kursbeginn».
           </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Keine Lust auf Eintippen? Schick uns ein Foto oder einen Screenshot deiner Kursdaten
+            an{" "}
+            <a href="mailto:admin@vku-nothelferkurs.ch" className="font-semibold underline">
+              admin@vku-nothelferkurs.ch
+            </a>{" "}
+            — wir tragen die Termine für dich ein.
+          </p>
 
           {termine && termine.length > 0 ? (
             <ul className="mt-4 space-y-2">
