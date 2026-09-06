@@ -43,8 +43,14 @@ function Datenschutz() {
           </p>
         </div>
         <div>
+          <h2 className="font-display text-base font-bold text-foreground">Verantwortlich</h2>
+          <p className="mt-1">
+            We Drive Milic, Fällmisstrasse 64, 8832 Wilen bei Wollerau, Schweiz
+          </p>
+        </div>
+        <div>
           <h2 className="font-display text-base font-bold text-foreground">Kontakt</h2>
-          <p className="mt-1">Fragen zum Datenschutz: hallo@vku-nothelferkurs.ch</p>
+          <p className="mt-1">Fragen zum Datenschutz: info@we-drive.ch</p>
         </div>
       </div>
     </SiteShell>
