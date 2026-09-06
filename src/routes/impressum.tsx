@@ -28,11 +28,11 @@ function Impressum() {
           <p className="mt-1">
             vku-nothelferkurs.ch
             <br />
-            [Firmenname]
+            We Drive Milic
             <br />
-            [Strasse Nr.], [PLZ Ort], Schweiz
+            Fällmisstrasse 64, 8832 Wilen bei Wollerau, Schweiz
             <br />
-            E-Mail: hallo@vku-nothelferkurs.ch
+            E-Mail: info@we-drive.ch
           </p>
         </div>
         <div>
