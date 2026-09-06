@@ -40,7 +40,7 @@ export function SiteHeader() {
           Login
         </Link>
         <Link
-          to="/fahrschulen-partner"
+          to="/kursanbieter-werden"
           className="rounded-full bg-card px-5 py-2.5 font-display text-sm font-semibold text-foreground shadow-[0_6px_16px_-8px_rgba(51,43,56,0.4)] transition-transform hover:-translate-y-0.5"
         >
           Für Kursanbieter
@@ -60,7 +60,7 @@ export function SiteFooter() {
         <Link to="/kontakt" className="hover:text-coral">
           Kontakt
         </Link>
-        <Link to="/fahrschulen-partner" className="hover:text-coral">
+        <Link to="/kursanbieter-werden" className="hover:text-coral">
           Anbieter-Partner
         </Link>
         <Link to="/auth" className="hover:text-coral">
@@ -71,6 +71,9 @@ export function SiteFooter() {
         </Link>
         <Link to="/datenschutz" className="hover:text-coral">
           Datenschutz
+        </Link>
+        <Link to="/agb" className="hover:text-coral">
+          AGB
         </Link>
       </div>
       <p className="mt-4 text-xs">

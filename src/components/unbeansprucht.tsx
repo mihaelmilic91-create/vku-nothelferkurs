@@ -46,7 +46,7 @@ export function BeanspruchenLink({
 }) {
   return (
     <Link
-      to="/fahrschulen-partner"
+      to="/kursanbieter-werden"
       search={{
         id: anbieter.id,
         name: anbieter.name,
