@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell, PageHeader } from "@/components/site-shell";
@@ -26,7 +26,7 @@ const feldKlasse =
 
 function AuthSeite() {
   const navigate = useNavigate();
-  const [modus, setModus] = useState<"login" | "registrieren" | "vergessen">("login");
+  const [modus, setModus] = useState<"login" | "vergessen">("login");
   const [email, setEmail] = useState("");
   const [passwort, setPasswort] = useState("");
   const [meldung, setMeldung] = useState<string | null>(null);
@@ -41,14 +41,6 @@ function AuthSeite() {
         const { error } = await supabase.auth.signInWithPassword({ email, password: passwort });
         if (error) throw error;
         navigate({ to: "/mein-konto" });
-      } else if (modus === "registrieren") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password: passwort,
-          options: { emailRedirectTo: `${window.location.origin}/mein-konto` },
-        });
-        if (error) throw error;
-        setMeldung("Konto erstellt. Bitte bestätige die E-Mail, danach kannst du dich anmelden.");
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth/neues-passwort`,
@@ -67,13 +59,7 @@ function AuthSeite() {
     <SiteShell>
       <PageHeader
         eyebrow="Für Anbieter"
-        title={
-          modus === "login"
-            ? "Anbieter-Login"
-            : modus === "registrieren"
-              ? "Anbieterkonto erstellen"
-              : "Passwort zurücksetzen"
-        }
+        title={modus === "login" ? "Anbieter-Login" : "Passwort zurücksetzen"}
         lead={
           modus === "vergessen"
             ? "Gib deine E-Mail ein — wir schicken dir einen Link zum Zurücksetzen."
@@ -125,23 +111,29 @@ function AuthSeite() {
           disabled={laedt}
           className="mt-5 w-full rounded-full bg-coral px-6 py-3 font-display text-sm font-semibold text-primary-foreground disabled:opacity-60"
         >
-          {modus === "login" ? "Anmelden" : modus === "registrieren" ? "Konto erstellen" : "Link senden"}
+          {modus === "login" ? "Anmelden" : "Link senden"}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            setModus(modus === "login" ? "registrieren" : "login");
-            setMeldung(null);
-          }}
-          className="mt-3 w-full text-sm font-semibold text-coral"
-        >
-          {modus === "registrieren"
-            ? "Ich habe bereits ein Konto"
-            : modus === "vergessen"
-              ? "Zurück zum Login"
-              : "Noch kein Konto? Jetzt registrieren"}
-        </button>
+        {modus === "vergessen" ? (
+          <button
+            type="button"
+            onClick={() => {
+              setModus("login");
+              setMeldung(null);
+            }}
+            className="mt-3 w-full text-sm font-semibold text-coral"
+          >
+            Zurück zum Login
+          </button>
+        ) : null}
       </form>
+      {modus === "login" ? (
+        <p className="mt-4 max-w-md text-sm text-muted-foreground">
+          Noch kein Konto?{" "}
+          <Link to="/kursanbieter-werden" className="font-semibold text-coral underline">
+            Jetzt als Kursanbieter registrieren
+          </Link>
+        </p>
+      ) : null}
     </SiteShell>
   );
 }
